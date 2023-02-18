@@ -16,10 +16,7 @@ import System.IO
 --------------------------------------------------------
 
 data Player = Player Int Int
-      deriving (Show)
-
 data Game = Game Player Player Int
-      deriving (Show)
 
 --------------------------------------------------------
 -- Game Functions
