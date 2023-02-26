@@ -48,7 +48,6 @@ start seconds =
 fightTitle = Translate (-40) (70)
   $ Scale 0.2 0.2
   $ Color orange (Text "Attack!")
-
 --------------------------------------------------------
 -- TITLE
 --------------------------------------------------------
@@ -241,13 +240,14 @@ skullJawLine2 = Translate (-250) (-50)
 
 skullJawLine3 = Translate (-280) (-50)
   $ Color black (rectangleSolid 10 40)
-
+  
 --------------------------------------------------------
 -- CUSTOM COLORS
 --------------------------------------------------------
 
 greyColor :: Color
 greyColor = makeColor 0.7 0.7 0.7 1
+
 
 greyColorDark :: Color
 greyColorDark = makeColor 0.8 0.8 0.8 1
