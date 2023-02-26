@@ -30,6 +30,10 @@ fightScene = Pictures [
   hero (-120) 0,
   monster (120) 0]
 
+endScene = Pictures [
+  tombstone 3,
+  title,
+  endText]
 
 --------------------------------------------------------
 -- ENTRY SCENE
@@ -146,6 +150,29 @@ monsterLeftArm x y = Translate (x-40) y
 monsterSword x y = Translate (x-70) (y+10)
   $ Rotate (-45)
   $ Color greyColor (rectangleSolid 10 80)
+
+--------------------------------------------------------
+-- END SCENE
+--------------------------------------------------------
+
+endText :: Picture
+endText =
+  Translate (-150) (-120) -- shift the text to the middle of the window
+  $ Scale 0.4 0.4 -- display it half the original size
+  $ Color red (Text "GAME OVER") -- text to display
+
+tombstone round = Pictures [tombstoneBody, tombstoneHead, tombstoneEngraving round]
+
+tombstoneBody = Translate 0 (-50)
+  $ Color greyColor (rectangleSolid 175 300)
+
+tombstoneHead = Translate (-30) 30
+  $ Scale 0.3 0.3 -- display it half the original size
+  $ Text "R.I.P"
+
+tombstoneEngraving round = Translate (-50) (-20)
+  $ Scale 0.2 0.2 -- display it half the original size
+  $ Text ("Round: " ++ show round)
 
 --------------------------------------------------------
 -- CUSTOM COLORS
