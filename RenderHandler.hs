@@ -4,10 +4,12 @@ import Graphics.Gloss
 import DungeonCrawler
 import Data.Fixed
 
-renderHandler :: World -> Picture
-renderHandler World{screenType="start"} = start 1.1
-renderHandler World{screenType="fight"} = fight 1.1
-renderHandler World{screenType="end"} = end 1.1
+renderHandler :: World -> World -> Picture
+renderHandler World{screenType="start"} world = start (seconds world)
+renderHandler World{screenType="charCreation"} world = fightScene -- PLACEHOLDER
+renderHandler World{screenType="fight"} world = fight (seconds world)
+renderHandler World{screenType="levelUp"} world = levelUpScene
+renderHandler World{screenType="end"} world = end (seconds world)
 
 --------------------------------------------------------
 -- ANIMATIONS
@@ -77,6 +79,9 @@ endScene = Pictures [
   tombstone 3,
   title,
   endText]
+
+levelUpScene = Pictures [
+  title]
 
 --------------------------------------------------------
 -- ENTRY SCENE
