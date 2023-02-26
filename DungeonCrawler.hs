@@ -1,4 +1,4 @@
-module Games
+module DungeonCrawler
   (State(..), Result(..), Game, Player) where
 -- To load it, try:
 -- ghci

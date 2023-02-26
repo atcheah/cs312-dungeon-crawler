@@ -1,3 +1,5 @@
+module KeyHandler where
+
 handleEnterKey :: World -> World
 handleEnterKey w = let screen = screenType w 
                     newWorld

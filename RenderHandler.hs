@@ -1,3 +1,5 @@
+module RenderHandler where
+
 renderHandler :: World -> Pictures
 renderHandler World{screenType="start"} = start (seconds world)
 renderHandler World{screenType="fight"} = fight seconds
