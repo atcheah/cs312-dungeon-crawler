@@ -10,7 +10,7 @@ handleEnterKey w =
     w
 
 handleStartEnter :: World -> World
-handleStartEnter w = w
+handleStartEnter w = World "charCreation" (seconds w) (internalState w)
 
 handleOneKey :: World -> World
 handleOneKey w = w

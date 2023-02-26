@@ -6,34 +6,34 @@ import Data.Fixed
 
 renderHandler :: World -> World -> Picture
 renderHandler World{screenType="start"} world = start (seconds world)
-renderHandler World{screenType="charCreation"} world = fightScene -- PLACEHOLDER
-renderHandler World{screenType="fight"} world = fight (seconds world)
-renderHandler World{screenType="levelUp"} world = levelUpScene
-renderHandler World{screenType="end"} world = end (seconds world)
+renderHandler World{screenType="charCreation"} world = fightScene-- PLACEHOLDER
+renderHandler World{screenType="fight"} world = fight (seconds world) 100.0 100.0 -- needs some way of getting hero and monster HP from world
+renderHandler World{screenType="levelUp"} world = levelUpScene -- PLACEHOLDER
+renderHandler World{screenType="end"} world = end (seconds world) 3 -- needs some way of getting rounds from world
 
 --------------------------------------------------------
 -- ANIMATIONS
 --------------------------------------------------------
 
-end :: Float -> Picture
-end seconds =
+end :: Float -> Int -> Picture
+end seconds rounds =
   do
     if (seconds `mod'` 3) < 1 then
       do
-        Pictures [ tombstone 3, title, endText ]
+        Pictures [ tombstone rounds, title, endText ]
     else
       do
-         Pictures[ tombstone 3, title, endText, skullBase1, skullBase2,skullEye1,skullEye2,skullJawLine1,skullJawLine2,skullJawLine3 ]
+         Pictures[ tombstone rounds, title, endText, skullBase1, skullBase2, skullEye1, skullEye2, skullJawLine1, skullJawLine2, skullJawLine3 ]
 
-fight :: Float -> Picture
-fight seconds = 
+fight :: Float -> Float -> Float -> Picture
+fight seconds heroHP monsterHP = 
   do
     if (seconds `mod'` 2) < 1 then
       do
-        Pictures [ title, heroHPBar 80, monsterHPBar 50, hero (-120) 0, monster (120) 0]
+        Pictures [ title, heroHPBar heroHP, monsterHPBar monsterHP, hero (-120) 0, monster (120) 0]
     else
       do
-         Pictures [ fightTitle, title, heroHPBar 80, monsterHPBar 50, hero (-110) 0, monster (110) 0 ]
+         Pictures [ fightTitle, title, heroHPBar heroHP, monsterHPBar monsterHP, hero (-110) 0, monster (110) 0 ]
 
 start:: Float -> Picture
 start seconds = 
@@ -81,7 +81,9 @@ endScene = Pictures [
   endText]
 
 levelUpScene = Pictures [
-  title]
+  title,
+  levelUpText,
+  levelUpSubText]
 
 --------------------------------------------------------
 -- ENTRY SCENE
@@ -198,6 +200,22 @@ monsterLeftArm x y = Translate (x-40) y
 monsterSword x y = Translate (x-70) (y+10)
   $ Rotate (-45)
   $ Color greyColor (rectangleSolid 10 80)
+
+--------------------------------------------------------
+-- LEVEL UP SCENE
+--------------------------------------------------------
+
+levelUpText :: Picture
+levelUpText =
+  Translate (-150) (100) -- shift the text to the middle of the window
+  $ Scale 0.2 0.2 -- display it half the original size
+  $ Color yellow (Text "Level Up!") -- text to display
+
+levelUpSubText :: Picture
+levelUpSubText =
+  Translate (-250) (75) -- shift the text to the middle of the window
+  $ Scale 0.2 0.2 -- display it half the original size
+  $ Color yellow (Text "You feel stronger upon vanquishing your foe!") -- text to display
 
 --------------------------------------------------------
 -- END SCENE
