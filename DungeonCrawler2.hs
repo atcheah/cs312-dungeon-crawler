@@ -45,7 +45,7 @@ dungeoncrawler :: Game
 
 dungeoncrawler move (State (InternalState self monster round) available) = do
     let player = levelUpCharacter self move
-    let (newPlayer, newMonster) = simulateFight player monster
+    let (newPlayer, newMonster, turns) = simulateFight player monster 0
     if ((getHealth newMonster) <= 0) then 
       do
         ContinueGame (State (InternalState player (autoLevelUpCharacter monster) (round + 1)) available)
@@ -57,7 +57,7 @@ dungeoncrawler move (State (InternalState self monster round) available) = do
 autoLevelUpCharacter :: Character -> Character 
 autoLevelUpCharacter (Character health attack bleed bleed_recieved life_steal priority) =
   do
-    let newHealth = health + 1
+    let newHealth = health + 5
     let newAttack = attack + 1
     let newBleed = bleed + 1
     let newBleedRecieved = bleed_recieved + 1
@@ -66,15 +66,15 @@ autoLevelUpCharacter (Character health attack bleed bleed_recieved life_steal pr
     Character newHealth newAttack newBleed newBleedRecieved newLifeSteal newPriority
 
 -- simulates a fight between a player and a monster, returns the player and monster after the fight
-simulateFight :: Character -> Character -> (Character, Character)
-simulateFight player monster = do
-    let newMonster = Character (getHealth monster - getAttack player - getBleedRecieved monster + getLifeSteal monster)
+simulateFight :: Character -> Character -> Int -> (Character, Character, Int)
+simulateFight player monster turns = do
+    let newMonster = Character (getHealth monster - getAttack player - getBleedRecieved monster + getLifeSteal monster - getLifeSteal player)
                             (getAttack monster)
                             (getBleed monster)
                             (getBleedRecieved monster + getBleed player)
                             (getLifeSteal monster)
                             (getPriority monster)
-    let newPlayer = Character (getHealth player - getAttack newMonster - getBleedRecieved player + getLifeSteal player)
+    let newPlayer = Character (getHealth player - getAttack newMonster - getBleedRecieved player + getLifeSteal player - getLifeSteal monster)
                             (getAttack player)
                             (getBleed player)
                             (getBleedRecieved player + getBleed monster)
@@ -82,11 +82,10 @@ simulateFight player monster = do
                             (getPriority player)
     if (getHealth newPlayer <= 0) || (getHealth newMonster <= 0) then
       do
-        (newPlayer, newMonster)
+        (newPlayer, newMonster, turns + 1)
     else
       do
-        simulateFight newPlayer newMonster
-
+        simulateFight newPlayer newMonster (turns + 1)
 
 play :: Game -> Result -> IO ()
 
@@ -96,7 +95,7 @@ play game (ContinueGame state) =
       let InternalState player monster level = internal
       putStrLn "You defeated the monster!"
       putStrLn "You feel stronger with this new experience!"
-      statChosen <- chooseStatToUpgrade player
+      statChosen <- chooseStatToUpgrade player monster
       putStrLn "You venture deeper into the dungeon..."
       putStrLn "And you find a stronger monster!"
       putStrLn "You encounter a monster!"
@@ -141,8 +140,8 @@ playFirstRound game (ContinueGame state) =
       play game result
 
 -- lets the player choose a stat to upgrade
-chooseStatToUpgrade :: Character -> IO Action
-chooseStatToUpgrade (Character health attack bleed bleed_recieved life_steal priority) = 
+chooseStatToUpgrade :: Character -> Character -> IO Action
+chooseStatToUpgrade (Character health attack bleed bleed_recieved life_steal priority) monster = 
   do 
     putStrLn "What Stat would you like to level up?"
     putStrLn "1. Health"
@@ -150,6 +149,8 @@ chooseStatToUpgrade (Character health attack bleed bleed_recieved life_steal pri
     putStrLn "3. Bleed"
     putStrLn "4. Life Steal"
     putStrLn "5. Priority"
+    let player = Character health attack bleed bleed_recieved life_steal priority
+    reccomend player monster
     choice <- getLineFixed
     if choice `elem` ["1", "health", "Health", "h", "H"] then
       do
@@ -173,7 +174,7 @@ chooseStatToUpgrade (Character health attack bleed bleed_recieved life_steal pri
             else
               do
                 putStrLn "Invalid Choice"
-                chooseStatToUpgrade (Character health attack bleed bleed_recieved life_steal priority)
+                chooseStatToUpgrade (Character health attack bleed bleed_recieved life_steal priority) monster
           
 
 -- levels up a player based on their choice
@@ -253,6 +254,99 @@ main = do
     let dungencrawler_start = State (InternalState (Character (read health) (read attack) (read bleed) 0 (read life_steal) (read priority)) (Character 10 5 0 0 0 1) 1) [Action n | n <- [1..5]]
     playFirstRound dungeoncrawler (ContinueGame dungencrawler_start)
 
+------ Recommender System ---------
+reccomend :: Character -> Character -> IO()
+reccomend player monster =
+  do
+    let healthPlayer = Character (getHealth player + 5)
+                              (getAttack player)
+                              (getBleed player)
+                              (getBleedRecieved player)
+                              (getLifeSteal player)
+                              (getPriority player)
+
+    let attackPlayer = Character (getHealth player)
+                              (getAttack player + 5)
+                              (getBleed player)
+                              (getBleedRecieved player)
+                              (getLifeSteal player)
+                              (getPriority player)
+
+    let bleedPlayer = Character (getHealth player)
+                              (getAttack player)
+                              (getBleed player + 5)
+                              (getBleedRecieved player)
+                              (getLifeSteal player)
+                              (getPriority player)
+
+    let lifeStealPlayer = Character (getHealth player)
+                                (getAttack player)
+                                (getBleed player)
+                                (getBleedRecieved player)
+                                (getLifeSteal player + 5)
+                                (getPriority player)
+    
+    let priorityPlayer = Character (getHealth player)
+                                (getAttack player)
+                                (getBleed player)
+                                (getBleedRecieved player)
+                                (getLifeSteal player)
+                                (getPriority player + 5)
+
+    let simulatedMonster = autoLevelUpCharacter monster
+
+    let (newHealthPlayer, newMonster, healthTurns) = simulateFight healthPlayer simulatedMonster 0
+    let health_rec = getHealth newHealthPlayer
+
+    let (newAttackPlayer, newMonster, attackTurns) = simulateFight attackPlayer simulatedMonster 0
+    let attack_rec = getHealth newAttackPlayer
+
+    let (newBleedPlayer, newMonster, bleedTurns) = simulateFight bleedPlayer simulatedMonster 0
+    let bleed_rec = getHealth newBleedPlayer
+
+    let (newLSPlayer, newMonster, lsTurns) = simulateFight lifeStealPlayer simulatedMonster 0
+    let ls_rec = getHealth newLSPlayer
+
+    let (newPrioPlayer, newMonster, prioTurns) = simulateFight priorityPlayer simulatedMonster 0
+    let prio_rec = getHealth newPrioPlayer
+
+    putStrLn " "
+    putStrLn "Defensive Reccomendation: "
+    if getAttack newMonster > getHealth newLSPlayer then
+      do
+        chooseBest (>) (health_rec) (attack_rec) (bleed_rec) (-1) (prio_rec)
+    else
+      do
+        chooseBest (<) healthTurns attackTurns bleedTurns lsTurns prioTurns
+    putStrLn " "
+    putStrLn "Offensive Reccomendation: "
+    chooseBestAtt healthTurns attackTurns bleedTurns lsTurns prioTurns
+
+chooseBest :: (Int -> Int -> Bool) -> Int -> Int -> Int -> Int -> Int -> IO()
+chooseBest op health attack bleed ls prio =
+  do
+    if (health `op` attack) && (health `op` bleed) && (health `op` ls) && (health `op` prio) then
+        do
+          putStrLn "Choose Health"
+    else
+      if (attack `op` health) && (attack `op` bleed) && (attack `op` ls) && (attack `op` prio) then
+        do
+          putStrLn "Choose Attack"
+      else
+        if (bleed `op` health) && (bleed `op` attack)  && (bleed `op` ls) && (bleed `op` prio) then
+          do
+            putStrLn "Choose Bleed"
+        else
+          if (ls `op` health) && (ls `op` attack)  && (ls `op` bleed) && (ls `op` prio) then
+            do
+              putStrLn "Choose Life Steal"
+          else
+            if (prio `op` health) && (prio `op` attack)  && (prio `op` bleed) && (prio `op` ls) then
+              do
+                putStrLn "Choose Priority"
+            else
+              do
+                putStrLn "Choose Any (preferably Health)" -- they are all equal so just get more health.
 
 --------------------------------------------------------
 -- stolen code from a3 solutions to fix backspace

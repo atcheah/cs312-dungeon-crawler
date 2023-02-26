@@ -4,8 +4,50 @@
 -- main
 
 import Graphics.Gloss
-main = display (InWindow "Dungeon Crawler" (400, 400) (0, 0)) black fightScene
+import Data.Fixed
 
+mainDisp :: IO ()
+-- main = display (InWindow "Dungeon Crawler" (400, 400) (0, 0)) black fightScene
+mainDisp = 
+  animate (InWindow "Dungeon Crawler" (800, 600) (10, 10)) black end
+
+
+end :: Float -> Picture
+end seconds =
+  do
+    if (seconds `mod'` 3) < 1 then
+      do
+        Pictures [ tombstone 3, title, endText ]
+    else
+      do
+         Pictures[ tombstone 3, title, endText, skullBase1, skullBase2,skullEye1,skullEye2,skullJawLine1,skullJawLine2,skullJawLine3 ]
+
+fight :: Float -> Picture
+fight seconds = 
+  do
+    if (seconds `mod'` 2) < 1 then
+      do
+        Pictures [ title, heroHPBar 80, monsterHPBar 50, hero (-120) 0, monster (120) 0]
+    else
+      do
+         Pictures [ fightTitle, title, heroHPBar 80, monsterHPBar 50, hero (-110) 0, monster (110) 0 ]
+
+start:: Float -> Picture
+start seconds = 
+  do
+    let scale = 1
+    if (seconds `mod'` 2) < 1 then
+      do
+        Pictures [ title, mainText, Scale 1.1 1.1 redFlame, Scale 1.05 1.05 orangeFlame, yellowFlame, torchStick]
+    else
+      do
+         Pictures [ title, mainText, redFlame, orangeFlame, yellowFlame, torchStick]
+  
+
+
+fightTitle = Translate (-40) (70)
+  $ Scale 0.2 0.2
+  $ Color orange (Text "Attack!")
 --------------------------------------------------------
 -- TITLE
 --------------------------------------------------------
@@ -174,12 +216,41 @@ tombstoneEngraving round = Translate (-50) (-20)
   $ Scale 0.2 0.2 -- display it half the original size
   $ Text ("Round: " ++ show round)
 
+skullBase1 = Translate (-250) 10 
+  $ Scale 0.2 0.2
+  $ Color greyColorDark (ThickCircle 100 200)
+
+skullBase2 = Translate (-250) 5
+  $ Scale 0.3 0.3
+  $ Color greyColorDark (ThickCircle 120 220)
+
+skullEye1 = Translate (-220) 15
+  $ Scale 0.05 0.05
+  $ Color red (ThickCircle 100 200)
+
+skullEye2 = Translate (-280) 15
+  $ Scale 0.05 0.05
+  $ Color red (ThickCircle 100 200)
+
+skullJawLine1 = Translate (-220) (-50)
+  $ Color black (rectangleSolid 10 40)
+
+skullJawLine2 = Translate (-250) (-50)
+  $ Color black (rectangleSolid 10 40)
+
+skullJawLine3 = Translate (-280) (-50)
+  $ Color black (rectangleSolid 10 40)
+  
 --------------------------------------------------------
 -- CUSTOM COLORS
 --------------------------------------------------------
 
 greyColor :: Color
 greyColor = makeColor 0.7 0.7 0.7 1
+
+
+greyColorDark :: Color
+greyColorDark = makeColor 0.8 0.8 0.8 1
 
 hpBarColor :: Color
 hpBarColor = makeColor 0.5 0.5 0.5 1
