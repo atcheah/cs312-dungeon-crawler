@@ -250,7 +250,7 @@ main = do
     life_steal <- getLineFixed
     putStrLn "What is your character's priority?"
     priority <- getLineFixed
-    let dungencrawler_start = State (InternalState (Character (read health) (read attack) (read bleed) 0 (read life_steal) (read priority)) (Character 10 5 0 0 0 1) 1) [Action n | n <- [1..2]]
+    let dungencrawler_start = State (InternalState (Character (read health) (read attack) (read bleed) 0 (read life_steal) (read priority)) (Character 10 5 0 0 0 1) 1) [Action n | n <- [1..5]]
     playFirstRound dungeoncrawler (ContinueGame dungencrawler_start)
 
 
