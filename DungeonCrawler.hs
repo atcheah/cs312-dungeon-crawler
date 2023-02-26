@@ -28,7 +28,6 @@ type Game = Action -> State -> Result
 type Player = State -> Action
 
 
-
 --------------------------------------------------------
 -- Data Definitions for Dungen Crawler
 --------------------------------------------------------
@@ -40,7 +39,7 @@ type Player = State -> Action
 --   life_steal value representing the player's life steal value (how much they heal per attack),
 --   priority (higher priority means they attack first), 
 data Character = Character Int Int Int Int Int Int
-data InternalState = InternalState Character Character Int -- self, monster , level
+data InternalState = InternalState Character Character Int -- self, monster, round
 data Action = Action Int                   -- a move for a player is just an Int that specifies what item they chose
          deriving (Ord,Eq)
 
@@ -209,32 +208,6 @@ levelUpCharacter (Character health attack bleed bleed_recieved life_steal priori
              else
                do -- should't get to this other than first level
                  (Character health attack bleed bleed_recieved life_steal priority)
-        
-
-
--- gets the health of a player
-getHealth :: Character -> Int
-getHealth (Character health _ _ _ _ _) = health
-
--- gets the attack of a player
-getAttack :: Character -> Int
-getAttack (Character _ attack _ _ _ _) = attack
-
--- gets the bleed of a player
-getBleed :: Character -> Int
-getBleed (Character _ _ bleed _ _ _) = bleed
-
--- gets the bleed recieved of a player
-getBleedRecieved :: Character -> Int
-getBleedRecieved (Character _ _ _ bleed_recieved _ _) = bleed_recieved
-
--- gets the life steal of a player
-getLifeSteal :: Character -> Int
-getLifeSteal (Character _ _ _ _ life_steal _) = life_steal
-
--- gets the priority of a player
-getPriority :: Character -> Int
-getPriority (Character _ _ _ _ _ priority) = priority
 
 -- handles starting the game
 mainGame :: IO ()
@@ -350,6 +323,47 @@ chooseBest op health attack bleed ls prio =
             else
               do
                 putStrLn "Choose Any (preferably Health)" -- they are all equal so just get more health.
+
+--------------------------------------------------------
+-- GETTERS
+--------------------------------------------------------
+
+-- gets the health of a player
+getHealth :: Character -> Int
+getHealth (Character health _ _ _ _ _) = health
+
+-- gets the attack of a player
+getAttack :: Character -> Int
+getAttack (Character _ attack _ _ _ _) = attack
+
+-- gets the bleed of a player
+getBleed :: Character -> Int
+getBleed (Character _ _ bleed _ _ _) = bleed
+
+-- gets the bleed recieved of a player
+getBleedRecieved :: Character -> Int
+getBleedRecieved (Character _ _ _ bleed_recieved _ _) = bleed_recieved
+
+-- gets the life steal of a player
+getLifeSteal :: Character -> Int
+getLifeSteal (Character _ _ _ _ life_steal _) = life_steal
+
+-- gets the priority of a player
+getPriority :: Character -> Int
+getPriority (Character _ _ _ _ _ priority) = priority
+
+-- gets the hero from the InternalState
+getHero :: InternalState -> Character
+getHero (InternalState hero _ _) = hero
+
+-- gets the monster from the InternalState
+getMonster :: InternalState -> Character
+getMonster (InternalState _ monster _) = monster
+
+-- gets the round from the InternalState
+getRound :: InternalState -> Int
+getRound (InternalState _ _ round) = round
+
 
 --------------------------------------------------------
 -- stolen code from a3 solutions to fix backspace
