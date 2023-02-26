@@ -1,2 +1,2 @@
-updateWorld :: World -> World
-updateWorld world = world
+updateWorld :: Float -> World -> World
+updateWorld secondsPassed world = world

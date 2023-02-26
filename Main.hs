@@ -35,6 +35,6 @@ handleKeys (EventKey (Char "6") Down _ _) world = handleSixKey world
 handleKeys _ world = world
 
 update :: Float -> World -> World 
-update _ world
-  | screenType world == "fight" = updateWorld world
+update secondsPassed world
+  | screenType world == "fight" = updateWorld secondsPassed world
   | otherwise = world

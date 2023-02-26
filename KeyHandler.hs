@@ -1,6 +1,6 @@
 handleEnterKey :: World -> World
 handleEnterKey w = let screen = screenType w 
                     newWorld
-                      | screen == "start" = handleStartEnter w
+                      | screen == "start" = w { screenType = "fight" }
                       | otherwise = w
 						      in newWorld
