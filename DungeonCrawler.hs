@@ -1,5 +1,4 @@
-module DungeonCrawler
-  (State(..), Result(..), Game, Player) where
+module DungeonCrawler where
 -- To load it, try:
 -- ghci
 -- :load DungeonCrawler2
@@ -10,6 +9,12 @@ import System.IO
 --------------------------------------------------------
 -- Data Definitions for Game
 --------------------------------------------------------
+
+data World = World {
+  screenType :: String,
+  seconds :: Float,
+  internalState :: InternalState
+}
 
 data State = State InternalState [Action]  -- internal_state available_actions
 --         deriving (Ord, Eq, Show)
@@ -87,9 +92,9 @@ simulateFight player monster turns = do
       do
         simulateFight newPlayer newMonster (turns + 1)
 
-play :: Game -> Result -> IO ()
+playGame :: Game -> Result -> IO ()
 
-play game (ContinueGame state) =
+playGame game (ContinueGame state) =
    do
       let State internal avail = state
       let InternalState player monster level = internal
@@ -111,9 +116,9 @@ play game (ContinueGame state) =
       putStrLn ("Monster life steal: " ++ show (getLifeSteal monster))
       putStrLn ("Monster priority: " ++ show (getPriority monster))
       putStrLn "The monster attacks you! The fight begins!" 
-      play game (game statChosen state)
+      playGame game (game statChosen state)
 
-play game (EndOfGame round) =
+playGame game (EndOfGame round) =
   do
     putStrLn "You were killed by the monster..."
     putStrLn ("You made it to round " ++ show round)
@@ -137,7 +142,7 @@ playFirstRound game (ContinueGame state) =
       putStrLn ("Monster priority: " ++ show (getPriority monster))
       putStrLn "The monster attacks you! The fight begins!"
       let result = game (Action 0) state -- no action 
-      play game result
+      playGame game result
 
 -- lets the player choose a stat to upgrade
 chooseStatToUpgrade :: Character -> Character -> IO Action
@@ -232,8 +237,8 @@ getPriority :: Character -> Int
 getPriority (Character _ _ _ _ _ priority) = priority
 
 -- handles starting the game
-main :: IO ()
-main = do
+mainGame :: IO ()
+mainGame = do
     putStrLn "Welcome to Dungeon Crawler!"
     -- allow char creation for some kind of variability? Otherwise, optimal path is same each time
     -- as if monster levels up randomly, solver function will not be able to return a true optimal path
@@ -318,7 +323,7 @@ reccomend player monster =
         chooseBest (<) healthTurns attackTurns bleedTurns lsTurns prioTurns
     putStrLn " "
     putStrLn "Offensive Reccomendation: "
-    chooseBestAtt healthTurns attackTurns bleedTurns lsTurns prioTurns
+    chooseBest (<) healthTurns attackTurns bleedTurns lsTurns prioTurns
 
 chooseBest :: (Int -> Int -> Bool) -> Int -> Int -> Int -> Int -> Int -> IO()
 chooseBest op health attack bleed ls prio =

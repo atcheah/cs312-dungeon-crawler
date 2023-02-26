@@ -1,9 +1,13 @@
 module RenderHandler where
 
-renderHandler :: World -> Pictures
-renderHandler World{screenType="start"} = start (seconds world)
-renderHandler World{screenType="fight"} = fight seconds
-renderHandler World{screenType="end"} = end seconds
+import Graphics.Gloss
+import DungeonCrawler
+import Data.Fixed
+
+renderHandler :: World -> Picture
+renderHandler World{screenType="start"} = start 1.1
+renderHandler World{screenType="fight"} = fight 1.1
+renderHandler World{screenType="end"} = end 1.1
 
 --------------------------------------------------------
 -- ANIMATIONS
