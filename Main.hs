@@ -12,12 +12,13 @@ import RenderHandler
 
 data World = World {
   screenType :: String
+  seconds :: Float
   internalState :: InternalState
 } deriving (Show)
 
 main :: IO ()
 main = do
-  play (InWindow "Dungeon Crawler" (800, 600) (10, 10)) black 30 (World "start" (InternalState (Character 0 0 0 0 0 0) (Character 10 5 0 0 0 1) 1)) render handleKeys update
+  play (InWindow "Dungeon Crawler" (800, 600) (10, 10)) black 30 (World "start" 0.0 (InternalState (Character 0 0 0 0 0 0) (Character 10 5 0 0 0 1) 1)) render handleKeys update
 
 -- needs to take a float representing time for start
 render :: World -> Picture
