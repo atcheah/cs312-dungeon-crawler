@@ -11,7 +11,7 @@ renderHandler World{screenType="charCreation2"} world = renderCharCreation2 (inp
 renderHandler World{screenType="charCreation3"} world = renderCharCreation3 (inputText world)
 renderHandler World{screenType="charCreation4"} world = renderCharCreation4 (inputText world)
 renderHandler World{screenType="charCreation5"} world = renderCharCreation5 (inputText world)
-renderHandler World{screenType="fight"} world = fight (seconds world) (getHealth (getHero (internalState world))) (getHealth (getMonster (internalState world)))
+renderHandler World{screenType="fight"} world = fight (seconds world) (getHero (internalState world)) (getMonster (internalState world))
 renderHandler World{screenType="levelUp"} world = 
   do
     let hero = getHero (internalState world)
@@ -32,15 +32,35 @@ end seconds rounds =
       do
          Pictures[ tombstone rounds, title, endText, skullBase1, skullBase2, skullEye1, skullEye2, skullJawLine1, skullJawLine2, skullJawLine3 ]
 
-fight :: Float -> Int -> Int -> Picture
-fight seconds heroHP monsterHP = 
+fight :: Float -> Character -> Character -> Picture
+fight seconds getHero getMonster = 
   do
+    let heroHealth = (getHealth getHero)
+    let heroAttack = (getAttack getHero)
+    let heroBleed = (getBleed getHero)
+    let heroLifeSteal = (getLifeSteal getHero)
+    let heroPriority = (getPriority getHero)
+
+    let monsterHealth = (getHealth getMonster)
+    let monsterAttack = (getAttack getMonster)
+    let monsterBleed = (getBleed getMonster)
+    let monsterLifeSteal = (getLifeSteal getMonster)
+    let monsterPriority = (getPriority getMonster)
+
     if (seconds `mod'` 2) < 1 then
       do
-        Pictures [ title, heroHPBar (fromIntegral heroHP), monsterHPBar (fromIntegral monsterHP), hero (-120) 0, monster (120) 0]
+        Pictures [title, heroHPBar (fromIntegral heroHealth), heroStatAttack heroAttack, 
+                heroStatBleed heroBleed, heroStatLifeSteal heroLifeSteal, heroStatPriority heroPriority,
+                monsterHPBar (fromIntegral monsterHealth), monsterStatAttack monsterAttack, monsterStatBleed monsterBleed, 
+                monsterStatLifeSteal monsterLifeSteal, monsterStatPriority monsterPriority, 
+                hero (-120) 0, monster (120) 0, Color blue heroBox, Color red monsterBox]
     else
       do
-         Pictures [ fightTitle, title, heroHPBar (fromIntegral heroHP), monsterHPBar (fromIntegral monsterHP), hero (-110) 0, monster (110) 0 ]
+         Pictures [fightTitle, title, heroHPBar (fromIntegral heroHealth), heroStatAttack heroAttack, 
+                  heroStatBleed heroBleed, heroStatLifeSteal heroLifeSteal, heroStatPriority heroPriority, 
+                  monsterHPBar (fromIntegral monsterHealth), monsterStatAttack monsterAttack, monsterStatBleed monsterBleed, 
+                  monsterStatLifeSteal monsterLifeSteal, monsterStatPriority monsterPriority, 
+                  hero (-110) 0, monster (110) 0, Color blue heroBox, Color red monsterBox] 
 
 start:: Float -> Picture
 start seconds = 
@@ -199,7 +219,66 @@ monsterHPBarCounter hp = Translate (140) (-180)
   $ Scale 0.2 0.2 
   $ Text hp 
 
--- Hero
+
+-- Hero Stats
+
+heroBox = Translate (-130) (-220) 
+  $ rectangleWire 150 160
+
+heroStatAttack :: Int -> Picture
+heroStatAttack stat=
+  Translate (-200) (-220)
+  $ Scale 0.2 0.2
+  $ Color blue (Text ("Attack:" ++ show stat))
+
+heroStatBleed :: Int -> Picture
+heroStatBleed stat=
+  Translate (-200) (-245)
+  $ Scale 0.2 0.2
+  $ Color blue (Text ("Bleed:" ++ show stat))
+
+heroStatLifeSteal :: Int -> Picture
+heroStatLifeSteal stat=
+  Translate (-200) (-275)
+  $ Scale 0.2 0.2
+  $ Color blue (Text ("LifeSteal:" ++ show stat))
+
+heroStatPriority :: Int -> Picture
+heroStatPriority stat=
+  Translate (-200) (-300)
+  $ Scale 0.2 0.2
+  $ Color blue (Text ("Priority:" ++ show stat))
+
+-- Monster Stats
+
+monsterBox = Translate (170) (-220) 
+  $ rectangleWire 150 160
+
+monsterStatAttack :: Int -> Picture
+monsterStatAttack stat=
+  Translate (100) (-220)
+  $ Scale 0.2 0.2
+  $ Color red (Text ("Attack:" ++ show stat))
+
+monsterStatBleed :: Int -> Picture
+monsterStatBleed stat=
+  Translate (100) (-245)
+  $ Scale 0.2 0.2
+  $ Color red (Text ("Bleed:" ++ show stat))
+
+monsterStatLifeSteal :: Int -> Picture
+monsterStatLifeSteal stat=
+  Translate (100) (-275)
+  $ Scale 0.2 0.2
+  $ Color red (Text ("LifeSteal:" ++ show stat))
+
+monsterStatPriority :: Int -> Picture
+monsterStatPriority stat=
+  Translate (100) (-300)
+  $ Scale 0.2 0.2
+  $ Color red (Text ("Priority:" ++ show stat))
+
+-- Hero Model
 
 hero x y = Pictures [heroBody x y, heroHead x y, heroRightLeg x y, heroLeftLeg x y, heroSword x y, heroRightArm x y, heroLeftArm x y]
 
@@ -227,7 +306,7 @@ heroSword x y = Translate (x+70) (y+10)
   $ Rotate 45
   $ Color greyColor (rectangleSolid 10 80)
 
--- Monster
+-- Monster Model
 
 monster x y = Pictures [monsterBody x y, monsterHead x y, monsterRightLeg x y, monsterLeftLeg x y, monsterSword x y, monsterRightArm x y, monsterLeftArm x y]
 
