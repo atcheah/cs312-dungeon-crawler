@@ -40,32 +40,32 @@ updateFight secondsPassed world =
                               (heroBleedRecieved + monsterBleed)
                               (heroLifeSteal)
                               (heroPriority)
-    simulateFightScene newHero newMonster secondsPassed world
-
--- The loop for the autoBattler system. This loop runs till either the player defeats the monster going to the level up screen
--- or till the player loses going to the end screen.
-simulateFightScene :: Character -> Character -> Float -> World -> World
-simulateFightScene hero monster secondsPassed world = do
-    if (getHealth hero <= 0) && (getHealth monster > 0) then
+    -- simulateFightScene newHero newMonster secondsPassed world
+    -- hero died, monster lived
+    if (getHealth newHero <= 0) && (getHealth newMonster > 0) then
       do
         World "end" (seconds world + secondsPassed) (internalState world) (inputText world)
     else
-      if (getHealth monster <= 0) then
+      -- monster died, hero lived
+      if (getHealth newMonster <= 0) && (getHealth newHero > 0) then
         do
           World "levelUp" (seconds world + secondsPassed) (internalState world) (inputText world)
       else
         do
-          let newMonster = Character (getHealth monster - getAttack hero - getBleedRecieved monster + getLifeSteal monster - getLifeSteal hero)
-                            (getAttack monster)
-                            (getBleed monster)
-                            (getBleedRecieved monster + getBleed hero)
-                            (getLifeSteal monster)
-                            (getPriority monster)
-          let newHero = Character (getHealth hero - getAttack newMonster - getBleedRecieved hero + getLifeSteal hero - getLifeSteal monster)
-                            (getAttack hero)
-                            (getBleed hero)
-                            (getBleedRecieved hero + getBleed monster)
-                            (getLifeSteal hero)
-                            (getPriority hero)
-          simulateFightScene newHero newMonster secondsPassed world
+        -- both died
+          if (getHealth newMonster <= 0) && (getHealth newHero <= 0) then
+            do
+              -- whoever has higher priority wins, hero wins ties
+              if ((getPriority newHero) >= (getPriority newMonster)) then
+                do
+                  World "levelUp" (seconds world + secondsPassed) (internalState world) (inputText world)
+              else
+                do
+                  World "end" (seconds world + secondsPassed) (internalState world) (inputText world)
+          else
+            do
+              -- both lived
+              World "fight" (seconds world + secondsPassed) (InternalState newHero newMonster (getRound (internalState world))) (inputText world)
+
+
 
