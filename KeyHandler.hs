@@ -53,9 +53,13 @@ handleCharKey c w =
 handleDeleteKey :: World -> World
 handleDeleteKey w =
     if (elem (screenType w) ["charCreation1", "charCreation2", "charCreation3", "charCreation4", "charCreation5"]) then
-        World (screenType w) (seconds w) (internalState w) (init (inputText w))
+        World (screenType w) (seconds w) (internalState w) (deleteOneChar (inputText w))
     else
         w
+
+deleteOneChar :: [a] -> [a]
+deleteOneChar s = if null s then [] else init s
+
 
 handleOneKey :: World -> World
 handleOneKey w = w
