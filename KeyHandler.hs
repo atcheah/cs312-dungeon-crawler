@@ -52,7 +52,7 @@ handleCharKey c w =
 
 handleDeleteKey :: World -> World
 handleDeleteKey w =
-    if (screenType w) == "charCreation1" then
+    if (elem (screenType w) ["charCreation1", "charCreation2", "charCreation3", "charCreation4", "charCreation5"]) then
         World "charCreation1" (seconds w) (internalState w) (init (inputText w))
     else
         w
