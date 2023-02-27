@@ -12,7 +12,7 @@ import RenderHandler
 -- main
 
 main :: IO ()
-main = play (InWindow "Dungeon Crawler" (800, 600) (10, 10)) black 1 (World "charCreation1" 0.0 (InternalState (Character 0 0 0 0 0 0) (Character 10 5 0 0 0 1) 1) "") render handleKeys update
+main = play (InWindow "Dungeon Crawler" (800, 600) (10, 10)) black 1 (World "start" 0.0 (InternalState (Character 0 0 0 0 0 0) (Character 10 5 0 0 0 1) 1) "") render handleKeys update
 
 -- needs to take a float representing time for start
 render :: World -> Picture
@@ -20,7 +20,7 @@ render world = renderHandler world world
 
 handleKeys :: Event -> World -> World
 handleKeys (EventKey (SpecialKey KeyEnter) Down _ _) world = handleEnterKey world
-handleKeys (EventKey (SpecialKey KeyDelete) Down _ _) world = handleEnterKey world
+handleKeys (EventKey (SpecialKey KeyDelete) Down _ _) world = handleDeleteKey world
 handleKeys (EventKey (Char c) Down _ _) world = handleCharKey c world
 --handleKeys (EventKey (Char '1') Down _ _) world = handleOneKey world
 --handleKeys (EventKey (Char '2') Down _ _) world = handleTwoKey world
