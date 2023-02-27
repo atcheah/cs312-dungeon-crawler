@@ -5,7 +5,7 @@ import DungeonCrawler
 updateWorld :: Float -> World -> World
 updateWorld secondsPassed world 
   | (screenType world) == "fight" = updateFight secondsPassed world
-  | otherwise = World (screenType world) (seconds world + secondsPassed) (internalState world)
+  | otherwise = World (screenType world) (seconds world + secondsPassed) (internalState world) (inputText world)
 
 -- TODO: 
 -- should be do essentially what simFight does except, except returning the new fight state

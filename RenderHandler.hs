@@ -6,7 +6,11 @@ import Data.Fixed
 
 renderHandler :: World -> World -> Picture
 renderHandler World{screenType="start"} world = start (seconds world)
-renderHandler World{screenType="charCreation"} world = fightScene-- PLACEHOLDER
+renderHandler World{screenType="charCreation1"} world = renderCharCreation1 (inputText world)
+renderHandler World{screenType="charCreation2"} world = renderCharCreation2 (inputText world)
+renderHandler World{screenType="charCreation3"} world = renderCharCreation3 (inputText world)
+renderHandler World{screenType="charCreation4"} world = renderCharCreation4 (inputText world)
+renderHandler World{screenType="charCreation5"} world = renderCharCreation5 (inputText world)
 renderHandler World{screenType="fight"} world = fight (seconds world) (getHealth (getHero (internalState world))) (getHealth (getMonster (internalState world)))
 renderHandler World{screenType="levelUp"} world = 
   do
@@ -49,6 +53,43 @@ start seconds =
       do
          Pictures [ title, redFlame, orangeFlame, yellowFlame, torchStick, mainText]
 
+--------------------------------------------------------
+-- RENDER CHAR CREATION SCENES
+--------------------------------------------------------
+renderCharCreation1 :: String -> Picture
+renderCharCreation1 s = Pictures [
+                          title,
+                          characterCreationText,
+                          characterHealthText,
+                          (renderInputBox (InputBox s))]
+
+renderCharCreation2 :: String -> Picture
+renderCharCreation2 s = Pictures [
+                          title,
+                          characterCreationText,
+                          characterAttackText,
+                          (renderInputBox (InputBox s))]
+
+renderCharCreation3 :: String -> Picture
+renderCharCreation3 s = Pictures [
+                          title,
+                          characterCreationText,
+                          characterBleedText,
+                          (renderInputBox (InputBox s))]
+
+renderCharCreation4 :: String -> Picture
+renderCharCreation4 s = Pictures [
+                          title,
+                          characterCreationText,
+                          characterLifeStealText,
+                          (renderInputBox (InputBox s))]
+
+renderCharCreation5 :: String -> Picture
+renderCharCreation5 s = Pictures [
+                          title,
+                          characterCreationText,
+                          characterPriorityext,
+                          (renderInputBox (InputBox s))]
 --------------------------------------------------------
 -- TITLES
 --------------------------------------------------------
@@ -285,6 +326,54 @@ levelUpPriorityButtonText currentPriority =
   $ Scale 0.1 0.1 
   $ Color black (Text ("Increase Priority: " ++ show currentPriority ++ "->" ++ show (currentPriority + amountToLevelUpBy))) 
 
+--------------------------------------------------------
+-- CHARACTER CREATION SCENE
+--------------------------------------------------------
+
+characterCreationText :: Picture
+characterCreationText =
+  Translate (-150) (100) -- shift the text to the middle of the window
+  $ Scale 0.2 0.2 -- display it half the original size
+  $ Color yellow (Text "Build your character!") -- text to display
+
+characterHealthText :: Picture
+characterHealthText =
+  Translate (-200) (60) -- shift the text to the middle of the window
+  $ Scale 0.2 0.2 -- display it half the original size
+  $ Color yellow (Text "What is your character's health?") -- text to display
+
+characterAttackText :: Picture
+characterAttackText =
+    Translate (-200) (60) -- shift the text to the middle of the window
+    $ Scale 0.2 0.2 -- display it half the original size
+    $ Color yellow (Text "What is your character's attack?") -- text to display
+
+characterBleedText :: Picture
+characterBleedText =
+  Translate (-200) (60) -- shift the text to the middle of the window
+  $ Scale 0.2 0.2 -- display it half the original size
+  $ Color yellow (Text "What is your character's bleed?") -- text to display
+
+characterLifeStealText :: Picture
+characterLifeStealText =
+    Translate (-200) (60) -- shift the text to the middle of the window
+    $ Scale 0.2 0.2 -- display it half the original size
+    $ Color yellow (Text "What is your character's life steal?") -- text to display
+
+characterPriorityext :: Picture
+characterPriorityext =
+  Translate (-200) (60) -- shift the text to the middle of the window
+  $ Scale 0.2 0.2 -- display it half the original size
+  $ Color yellow (Text "What is your character's priority?") -- text to display
+
+data InputBox = InputBox String
+renderInputBox :: InputBox -> Picture
+renderInputBox (InputBox s) = pictures [inputField, inputText]
+  where
+    inputField = Color yellow (rectangleWire 380 80)
+    inputText = translate (-170) 0
+        $ scale 0.25 0.25
+        $ Color yellow (text s)
 --------------------------------------------------------
 -- END SCENE
 --------------------------------------------------------
