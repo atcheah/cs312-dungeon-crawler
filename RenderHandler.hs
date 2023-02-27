@@ -11,9 +11,12 @@ renderHandler World{screenType="charCreation2"} world = renderCharCreation2 (inp
 renderHandler World{screenType="charCreation3"} world = renderCharCreation3 (inputText world)
 renderHandler World{screenType="charCreation4"} world = renderCharCreation4 (inputText world)
 renderHandler World{screenType="charCreation5"} world = renderCharCreation5 (inputText world)
-renderHandler World{screenType="fight"} world = fight (seconds world) 100.0 100.0 -- needs some way of getting hero and monster HP from world
-renderHandler World{screenType="levelUp"} world = levelUpScene -- PLACEHOLDER
-renderHandler World{screenType="end"} world = end (seconds world) 3 -- needs some way of getting rounds from world
+renderHandler World{screenType="fight"} world = fight (seconds world) (getHealth (getHero (internalState world))) (getHealth (getMonster (internalState world)))
+renderHandler World{screenType="levelUp"} world = 
+  do
+    let hero = getHero (internalState world)
+    levelUpScene (getHealth hero) (getAttack hero) (getBleed hero) (getLifeSteal hero) (getPriority hero)
+renderHandler World{screenType="end"} world = end (seconds world) (getRound (internalState world))
 
 --------------------------------------------------------
 -- ANIMATIONS
@@ -29,15 +32,15 @@ end seconds rounds =
       do
          Pictures[ tombstone rounds, title, endText, skullBase1, skullBase2, skullEye1, skullEye2, skullJawLine1, skullJawLine2, skullJawLine3 ]
 
-fight :: Float -> Float -> Float -> Picture
+fight :: Float -> Int -> Int -> Picture
 fight seconds heroHP monsterHP = 
   do
     if (seconds `mod'` 2) < 1 then
       do
-        Pictures [ title, heroHPBar heroHP, monsterHPBar monsterHP, hero (-120) 0, monster (120) 0]
+        Pictures [ title, heroHPBar (fromIntegral heroHP), monsterHPBar (fromIntegral monsterHP), hero (-120) 0, monster (120) 0]
     else
       do
-         Pictures [ fightTitle, title, heroHPBar heroHP, monsterHPBar monsterHP, hero (-110) 0, monster (110) 0 ]
+         Pictures [ fightTitle, title, heroHPBar (fromIntegral heroHP), monsterHPBar (fromIntegral monsterHP), hero (-110) 0, monster (110) 0 ]
 
 start:: Float -> Picture
 start seconds = 
@@ -95,9 +98,9 @@ fightTitle = Translate (-40) (70)
   $ Scale 0.2 0.2
   $ Color orange (Text "Attack!")
 
-title =  Translate (-200) (160) -- shift the text to the middle of the window
-  $ Scale 0.3 0.3 -- display it half the original size
-  $ Color yellow (Text "DUNGEON CRAWLER") -- text to display
+title =  Translate (-200) (160) 
+  $ Scale 0.3 0.3 
+  $ Color yellow (Text "DUNGEON CRAWLER") 
 
 
 --------------------------------------------------------
@@ -121,10 +124,20 @@ endScene = Pictures [
   title,
   endText]
 
-levelUpScene = Pictures [
+levelUpScene hpStat attackStat bleedStat lifeStealState priorityStat = Pictures [
   title,
   levelUpText,
-  levelUpSubText]
+  levelUpSubText,
+  levelUpHealthButton,
+  levelUpHealthButtonText hpStat,
+  levelUpAttackButton,
+  levelUpAttackButtonText attackStat,
+  levelUpBleedButton,
+  levelUpBleedButtonText bleedStat,
+  levelUpLifeStealButton,
+  levelUpLifeStealButtonText lifeStealState,
+  levelUpPriorityButton,
+  levelUpPriorityButtonText priorityStat]
 
 --------------------------------------------------------
 -- ENTRY SCENE
@@ -132,28 +145,28 @@ levelUpScene = Pictures [
 
 mainText :: Picture
 mainText =
-  Translate (-150) (-120) -- shift the text to the middle of the window
-  $ Scale 0.2 0.2 -- display it half the original size
-  $ Color yellow (Text "Press Enter to Start") -- text to display
+  Translate (-150) (-120) 
+  $ Scale 0.2 0.2 
+  $ Color yellow (Text "Press Enter to Start") 
 
 
 -- torch model
 torch = Pictures [redFlame, orangeFlame, yellowFlame, torchStick]
 
-yellowFlame = Translate 0 10 -- shift the text to the middle of the window
-  $ Scale 0.2 0.2 -- display it half the original size
-  $ Color yellow (ThickCircle 100 100) -- text to display
+yellowFlame = Translate 0 10 
+  $ Scale 0.2 0.2 
+  $ Color yellow (ThickCircle 100 100) 
 
-orangeFlame = Translate 0 20 -- shift the text to the middle of the window
-  $ Scale 0.2 0.3 -- display it half the original size
-  $ Color orange (ThickCircle 120 120) -- text to display
+orangeFlame = Translate 0 20 
+  $ Scale 0.2 0.3 
+  $ Color orange (ThickCircle 120 120) 
 
-redFlame = Translate 0 40 -- shift the text to the middle of the window
-  $ Scale 0.2 0.4 -- display it half the original size
-  $ Color red (ThickCircle 140 140) -- text to display
+redFlame = Translate 0 40 
+  $ Scale 0.2 0.4 
+  $ Color red (ThickCircle 140 140) 
 
-torchStick = Translate 0 (-80) -- shift the text to the middle of the window
-  $ Color brownColor (rectangleSolid 20 200) -- text to display
+torchStick = Translate 0 (-80) 
+  $ Color brownColor (rectangleSolid 20 200) 
 
 
 --------------------------------------------------------
@@ -167,24 +180,24 @@ heroHPBar hp = Pictures [Color hpBarColor containerHeroHPBar, Color green (topHe
 containerHeroHPBar = Translate (-150) (-170) 
   $ rectangleSolid 100 45 
 
-topHeroHPBar hp = Translate (-150 - ((100 - hp) / 2)) (-170) -- shift the text to the middle of the window
-  $ rectangleSolid hp 40 -- display it half the original size
+topHeroHPBar hp = Translate (-150 - ((100 - hp) / 2)) (-170) 
+  $ rectangleSolid hp 40 
 
-heroHPBarCounter hp = Translate (-190) (-180) -- shift the text to the middle of the window
-  $ Scale 0.2 0.2 -- display it half the original size
-  $ Text hp -- display it half the original size
+heroHPBarCounter hp = Translate (-190) (-180) 
+  $ Scale 0.2 0.2 
+  $ Text hp 
 
 monsterHPBar hp = Pictures [Color hpBarColor containerMonsterHPBar, Color red (topMonsterHPBar hp), monsterHPBarCounter (show hp)]
 
 containerMonsterHPBar = Translate (150) (-170) 
   $ rectangleSolid 100 45
 
-topMonsterHPBar hp = Translate (150 + ((100 - hp) / 2)) (-170) -- shift the text to the middle of the window
-  $ rectangleSolid hp 40 -- display it half the original size
+topMonsterHPBar hp = Translate (150 + ((100 - hp) / 2)) (-170) 
+  $ rectangleSolid hp 40 
 
-monsterHPBarCounter hp = Translate (140) (-180) -- shift the text to the middle of the window
-  $ Scale 0.2 0.2 -- display it half the original size
-  $ Text hp -- display it half the original size
+monsterHPBarCounter hp = Translate (140) (-180) 
+  $ Scale 0.2 0.2 
+  $ Text hp 
 
 -- Hero
 
@@ -248,15 +261,70 @@ monsterSword x y = Translate (x-70) (y+10)
 
 levelUpText :: Picture
 levelUpText =
-  Translate (-150) (100) -- shift the text to the middle of the window
-  $ Scale 0.2 0.2 -- display it half the original size
-  $ Color yellow (Text "Level Up!") -- text to display
+  Translate (-150) (100) 
+  $ Scale 0.2 0.2 
+  $ Color yellow (Text "Level Up!") 
 
 levelUpSubText :: Picture
 levelUpSubText =
-  Translate (-250) (75) -- shift the text to the middle of the window
-  $ Scale 0.2 0.2 -- display it half the original size
-  $ Color yellow (Text "You feel stronger upon vanquishing your foe!") -- text to display
+  Translate (-250) (75) 
+  $ Scale 0.2 0.2 
+  $ Color yellow (Text "You feel stronger upon vanquishing your foe!") 
+
+levelUpHealthButton :: Picture
+levelUpHealthButton =
+  Translate (-250) (0) 
+  $ Color yellow (rectangleSolid 200 50) 
+
+levelUpHealthButtonText :: Int -> Picture
+levelUpHealthButtonText currentMaxHp =
+  Translate (-335) (0) 
+  $ Scale 0.1 0.1 
+  $ Color black (Text ("Increase Health: " ++ show currentMaxHp ++ "->" ++ show (currentMaxHp + amountToLevelUpBy))) 
+
+levelUpAttackButton :: Picture
+levelUpAttackButton =
+  Translate (0) (0) 
+  $ Color yellow (rectangleSolid 200 50) 
+
+levelUpAttackButtonText :: Int -> Picture
+levelUpAttackButtonText currentAttack =
+  Translate (-85) (0) 
+  $ Scale 0.1 0.1 
+  $ Color black (Text ("Increase Attack: " ++ show currentAttack ++ "->" ++ show (currentAttack + amountToLevelUpBy))) 
+
+levelUpBleedButton :: Picture
+levelUpBleedButton =
+  Translate (250) (0) 
+  $ Color yellow (rectangleSolid 200 50) 
+
+levelUpBleedButtonText :: Int -> Picture
+levelUpBleedButtonText currentBleed =
+  Translate (165) (0) 
+  $ Scale 0.1 0.1 
+  $ Color black (Text ("Increase Bleed: " ++ show currentBleed ++ "->" ++ show (currentBleed + amountToLevelUpBy))) 
+
+levelUpLifeStealButton :: Picture
+levelUpLifeStealButton =
+  Translate (-125) (-100) 
+  $ Color yellow (rectangleSolid 200 50) 
+
+levelUpLifeStealButtonText :: Int -> Picture
+levelUpLifeStealButtonText currentLifeSteal =
+  Translate (-210) (-100) 
+  $ Scale 0.1 0.1 
+  $ Color black (Text ("Increase Life Steal: " ++ show currentLifeSteal ++ "->" ++ show (currentLifeSteal + amountToLevelUpBy))) 
+
+levelUpPriorityButton :: Picture
+levelUpPriorityButton =
+  Translate (125) (-100) 
+  $ Color yellow (rectangleSolid 200 50) 
+
+levelUpPriorityButtonText :: Int -> Picture
+levelUpPriorityButtonText currentPriority =
+  Translate (40) (-100) 
+  $ Scale 0.1 0.1 
+  $ Color black (Text ("Increase Priority: " ++ show currentPriority ++ "->" ++ show (currentPriority + amountToLevelUpBy))) 
 
 --------------------------------------------------------
 -- CHARACTER CREATION SCENE
@@ -312,9 +380,9 @@ renderInputBox (InputBox s) = pictures [inputField, inputText]
 
 endText :: Picture
 endText =
-  Translate (-150) (-120) -- shift the text to the middle of the window
-  $ Scale 0.4 0.4 -- display it half the original size
-  $ Color red (Text "GAME OVER") -- text to display
+  Translate (-150) (-120) 
+  $ Scale 0.4 0.4 
+  $ Color red (Text "GAME OVER") 
 
 tombstone round = Pictures [tombstoneBody, tombstoneHead, tombstoneEngraving round]
 
@@ -322,11 +390,11 @@ tombstoneBody = Translate 0 (-50)
   $ Color greyColor (rectangleSolid 175 300)
 
 tombstoneHead = Translate (-30) 30
-  $ Scale 0.3 0.3 -- display it half the original size
+  $ Scale 0.3 0.3 
   $ Text "R.I.P"
 
 tombstoneEngraving round = Translate (-50) (-20)
-  $ Scale 0.2 0.2 -- display it half the original size
+  $ Scale 0.2 0.2 
   $ Text ("Round: " ++ show round)
 
 skullBase1 = Translate (-250) 10 

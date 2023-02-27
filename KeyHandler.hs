@@ -3,6 +3,10 @@ module KeyHandler where
 import Data.Char (isDigit)
 import DungeonCrawler
 
+--------------------------------------------------------
+-- TOP LEVEL KEY HANDLERS
+--------------------------------------------------------
+
 handleEnterKey :: World -> World
 handleEnterKey w = 
   if (screenType w) == "start" then
@@ -40,6 +44,17 @@ handleEnterKey w =
                     else
                         w
 
+handleMouseClick :: Float -> Float -> World -> World
+handleMouseClick x y w =
+  if (screenType w) == "levelUp" then
+    handleLevelUpClick x y w
+  else
+    w
+
+--------------------------------------------------------
+-- SCREEN SPECIFIC KEY HANDLERS
+--------------------------------------------------------
+
 handleStartEnter :: World -> World
 handleStartEnter w = World "charCreation1" (seconds w) (internalState w) (inputText w)
 
@@ -61,20 +76,30 @@ deleteOneChar :: [a] -> [a]
 deleteOneChar s = if null s then [] else init s
 
 
-handleOneKey :: World -> World
-handleOneKey w = w
-
-handleTwoKey :: World -> World
-handleTwoKey w = w
-
-handleThreeKey :: World -> World
-handleThreeKey w = w
-
-handleFourKey :: World -> World
-handleFourKey w = w
-
-handleFiveKey :: World -> World
-handleFiveKey w = w
-
-handleSixKey :: World -> World
-handleSixKey w = w
+handleLevelUpClick :: Float -> Float -> World -> World
+handleLevelUpClick x y w =
+  do
+    let hero = getHero (internalState w)
+    let newMonster = autoLevelUpCharacter (getMonster (internalState w))
+    let newRound = getRound (internalState w) + 1
+    -- health button
+    if (x > (-350) && x < (-150) && y > (-25) && y < 25) then
+      (World "fight" (seconds w) (InternalState (levelUpCharacter hero (Action 1)) newMonster newRound))
+    else 
+      -- attack button
+      if (x > (-100) && x < 100 && y > (-25) && y < 25) then 
+        (World "fight" (seconds w) (InternalState (levelUpCharacter hero (Action 2)) newMonster newRound))
+      else
+        -- bleed button
+        if (x > 150 && x < 350 && y > (-25) && y < 25) then
+          (World "fight" (seconds w) (InternalState (levelUpCharacter hero (Action 3)) newMonster newRound))
+        else
+          -- life steal button
+          if (x > (-225) && x < (-25) && y > (-125) && y < (-75)) then
+            (World "fight" (seconds w) (InternalState (levelUpCharacter hero (Action 4)) newMonster newRound))
+          else
+            -- priority button
+            if (x > 25 && x < 225 && y > (-125) && y < (-75)) then
+              (World "fight" (seconds w) (InternalState (levelUpCharacter hero (Action 5)) newMonster newRound))
+            else
+              w
