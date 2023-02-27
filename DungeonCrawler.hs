@@ -73,8 +73,9 @@ autoLevelUpCharacter (Character health attack bleed bleed_recieved life_steal pr
     Character newHealth newAttack newBleed newBleedRecieved newLifeSteal newPriority
 
 -- simulates a fight between a player and a monster, returns the player and monster after the fight
+-- used for smartLevelUpMonster in KeyHandler.hs to determine the amount of turns a monster can last in battle
 simulateFight :: Character -> Character -> Int -> (Character, Character, Int)
-simulateFight player monster turns = do
+simulateFight monster player turns = do
     let newMonster = Character (getHealth monster - getAttack player - getBleedRecieved monster + getLifeSteal monster - getLifeSteal player)
                             (getAttack monster)
                             (getBleed monster)
@@ -87,12 +88,17 @@ simulateFight player monster turns = do
                             (getBleedRecieved player + getBleed monster)
                             (getLifeSteal player)
                             (getPriority player)
-    if (getHealth newPlayer <= 0) || (getHealth newMonster <= 0) then
+    if (getHealth newPlayer <= 0) && (getHealth newMonster > 0) then -- monster wins this is the best option so weight it highest
       do
-        (newPlayer, newMonster, turns + 1)
+        (newMonster, newPlayer, turns + 100)
     else
-      do
-        simulateFight newPlayer newMonster (turns + 1)
+      if
+        (getHealth newMonster <= 0) then -- If the monster doesn't win it is safe to assume it lost. Return the number of turns.
+        do
+          (newMonster, newPlayer, turns + 1)
+      else
+        do
+          simulateFight newMonster newPlayer (turns + 1)
 
 playGame :: Game -> Result -> IO ()
 
