@@ -6,7 +6,7 @@ import Data.Fixed
 
 renderHandler :: World -> World -> Picture
 renderHandler World{screenType="start"} world = start (seconds world)
-renderHandler World{screenType="charCreation"} world = fightScene-- PLACEHOLDER
+renderHandler World{screenType="charCreation1"} world = renderCharCreation1 (inputText world) -- PLACEHOLDER
 renderHandler World{screenType="fight"} world = fight (seconds world) 100.0 100.0 -- needs some way of getting hero and monster HP from world
 renderHandler World{screenType="levelUp"} world = levelUpScene -- PLACEHOLDER
 renderHandler World{screenType="end"} world = end (seconds world) 3 -- needs some way of getting rounds from world
@@ -46,6 +46,15 @@ start seconds =
       do
          Pictures [ title, redFlame, orangeFlame, yellowFlame, torchStick, mainText]
 
+--------------------------------------------------------
+-- RENDER CHAR CREATION SCENES
+--------------------------------------------------------
+renderCharCreation1 :: String -> Picture
+renderCharCreation1 s = Pictures [
+                          title,
+                          characterCreationText,
+                          characterHealthText,
+                          (renderInputBox (InputBox s))]
 --------------------------------------------------------
 -- TITLES
 --------------------------------------------------------
@@ -216,6 +225,39 @@ levelUpSubText =
   Translate (-250) (75) -- shift the text to the middle of the window
   $ Scale 0.2 0.2 -- display it half the original size
   $ Color yellow (Text "You feel stronger upon vanquishing your foe!") -- text to display
+
+--------------------------------------------------------
+-- CHARACTER CREATION SCENE
+--------------------------------------------------------
+
+characterCreationText :: Picture
+characterCreationText =
+  Translate (-150) (100) -- shift the text to the middle of the window
+  $ Scale 0.2 0.2 -- display it half the original size
+  $ Color yellow (Text "Build your character!") -- text to display
+
+characterHealthText :: Picture
+characterHealthText =
+  Translate (-200) (60) -- shift the text to the middle of the window
+  $ Scale 0.2 0.2 -- display it half the original size
+  $ Color yellow (Text "What is your character's health?") -- text to display
+
+data InputBox = InputBox String
+renderInputBox :: InputBox -> Picture
+renderInputBox (InputBox s) = pictures [inputField, inputText]
+  where
+    inputField = Color yellow (rectangleWire 380 80)
+    inputText = translate (-170) 0
+        $ scale 0.25 0.25
+        $ Color yellow (text s)
+
+--handleInput :: Event -> InputBox -> InputBox
+--handleInput (EventKey (Char c) Down _ _) (InputBox s) =
+--InputBox (s ++ [c])
+--handleInput (EventKey (SpecialKey KeyDelete) Down _ _) (InputBox s) = InputBox (init s)
+--handleInput _ ib = ib
+--
+
 
 --------------------------------------------------------
 -- END SCENE

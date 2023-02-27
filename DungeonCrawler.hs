@@ -13,7 +13,8 @@ import System.IO
 data World = World {
   screenType :: String,
   seconds :: Float,
-  internalState :: InternalState
+  internalState :: InternalState,
+  inputText :: String
 }
 
 data State = State InternalState [Action]  -- internal_state available_actions
