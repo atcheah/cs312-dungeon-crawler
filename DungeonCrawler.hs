@@ -27,6 +27,8 @@ type Game = Action -> State -> Result
 
 type Player = State -> Action
 
+amountToLevelUpBy :: Int
+amountToLevelUpBy = 5
 
 --------------------------------------------------------
 -- Data Definitions for Dungen Crawler
@@ -185,26 +187,25 @@ chooseStatToUpgrade (Character health attack bleed bleed_recieved life_steal pri
 levelUpCharacter :: Character -> Action -> Character
 levelUpCharacter (Character health attack bleed bleed_recieved life_steal priority) (Action chosenStat) = 
   do 
-    let amntToLevelUpBy = 5
     if (chosenStat == 1) then 
       do
-        (Character (health + amntToLevelUpBy) attack bleed bleed_recieved life_steal priority)
+        (Character (health + amountToLevelUpBy) attack bleed bleed_recieved life_steal priority)
     else 
       if (chosenStat == 2) then 
         do
-          (Character health (attack + amntToLevelUpBy) bleed bleed_recieved life_steal priority)
+          (Character health (attack + amountToLevelUpBy) bleed bleed_recieved life_steal priority)
       else 
         if (chosenStat == 3) then 
           do
-            (Character health attack (bleed + amntToLevelUpBy) bleed_recieved life_steal priority)
+            (Character health attack (bleed + amountToLevelUpBy) bleed_recieved life_steal priority)
         else
           if (chosenStat == 4) then
             do
-              (Character health attack bleed bleed_recieved (life_steal + amntToLevelUpBy) priority)
+              (Character health attack bleed bleed_recieved (life_steal + amountToLevelUpBy) priority)
            else
              if (chosenStat == 5) then
                do
-                 (Character health attack bleed bleed_recieved life_steal (priority + amntToLevelUpBy))
+                 (Character health attack bleed bleed_recieved life_steal (priority + amountToLevelUpBy))
              else
                do -- should't get to this other than first level
                  (Character health attack bleed bleed_recieved life_steal priority)
