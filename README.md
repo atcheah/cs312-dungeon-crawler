@@ -13,3 +13,10 @@ To install Gloss try running
 \#
 cabal install --lib gloss
 \#
+
+And to run the game
+\#
+ghci -fno-ghci-sandbox
+:load Main
+main
+\#
