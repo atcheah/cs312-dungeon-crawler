@@ -1,6 +1,12 @@
-# cs312-dungeon-crawler
+# Dungeon Crawler
 
-A game where you explore a dungeon and fight monsters. Players are represented by a health value and 
-an attack value. Monsters are just players. The game consists of repeated fights between the player
-and a monster. The player can level up after each fight, and fights a new monster stronger than before.
-The game ends when the player loses a fight. 
+Dungeon Crawler is a game where you explore a dungeon, alternating between fighting monsters and leveling up. The project was made using the Gloss API (https://hackage.haskell.org/package/gloss)
+
+## GAME OVERVIEW
+Players are allowed to choose their own stats (HP, DMG, Bleed, Life Steal, Priority), and then face against a default monster.
+The player fights the monster in a basic animation, and then either wins or loses. 
+If they win, they progress to a level-up screen and choose a stat to increase. After leveling up, the player progresses and fights a new monster stronger than before. 
+If they lose, the game ends when the player loses a fight. 
+
+## INSTALLATION GUIDE
+To install and run this repo,
