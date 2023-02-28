@@ -41,31 +41,12 @@ updateFight secondsPassed world =
                               (heroLifeSteal)
                               (heroPriority)
     -- simulateFightScene newHero newMonster secondsPassed world
-    -- hero died, monster lived
-    if (getHealth newHero <= 0) && (getHealth newMonster > 0) then
+    if (getHealth newHero <= 0) || (getHealth newMonster <= 0) then
       do
-        World "end" (seconds world + secondsPassed) (internalState world) (inputText world)
+        World "result" (seconds world + secondsPassed)  (InternalState newHero newMonster (getRound (internalState world))) (inputText world)
     else
-      -- monster died, hero lived
-      if (getHealth newMonster <= 0) && (getHealth newHero > 0) then
-        do
-          World "levelUp" (seconds world + secondsPassed) (internalState world) (inputText world)
-      else
-        do
-        -- both died
-          if (getHealth newMonster <= 0) && (getHealth newHero <= 0) then
-            do
-              -- whoever has higher priority wins, hero wins ties
-              if ((getPriority newHero) >= (getPriority newMonster)) then
-                do
-                  World "levelUp" (seconds world + secondsPassed) (internalState world) (inputText world)
-              else
-                do
-                  World "end" (seconds world + secondsPassed) (internalState world) (inputText world)
-          else
-            do
-              -- both lived
-              World "fight" (seconds world + secondsPassed) (InternalState newHero newMonster (getRound (internalState world))) (inputText world)
+      do
+        World "fight" (seconds world + secondsPassed) (InternalState newHero newMonster (getRound (internalState world))) (inputText world)
 
 
 

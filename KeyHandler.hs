@@ -11,38 +11,41 @@ handleEnterKey :: World -> World
 handleEnterKey w = 
   if (screenType w) == "start" then
     handleStartEnter w
-  else
-    if ((screenType w) == "charCreation1") && ((inputText w) /= "") then
-        do
-            let InternalState player monster level = (internalState w)
-            let Character health attack bleed bleed_recieved life_steal priority = player
-            World "charCreation2" (seconds w) (InternalState (Character (read (inputText w)) attack bleed bleed_recieved life_steal priority) monster level) ""
+  else 
+    if (screenType w) == "result" then
+      handleResultEnter w
     else
-        if ((screenType w) == "charCreation2") && ((inputText w) /= "") then
-            do
-                let InternalState player monster level = (internalState w)
-                let Character health attack bleed bleed_recieved life_steal priority = player
-                World "charCreation3" (seconds w) (InternalState (Character health (read (inputText w)) bleed bleed_recieved life_steal priority) monster level) ""
-        else
-            if ((screenType w) == "charCreation3") && ((inputText w) /= "") then
-                do
-                    let InternalState player monster level = (internalState w)
-                    let Character health attack bleed bleed_recieved life_steal priority = player
-                    World "charCreation4" (seconds w) (InternalState (Character health attack (read (inputText w)) bleed_recieved life_steal priority) monster level) ""
-            else
-                if ((screenType w) == "charCreation4") && ((inputText w) /= "") then
-                    do
-                        let InternalState player monster level = (internalState w)
-                        let Character health attack bleed bleed_recieved life_steal priority = player
-                        World "charCreation5" (seconds w) (InternalState (Character health attack bleed bleed_recieved (read (inputText w)) priority) monster level) ""
-                else
-                    if ((screenType w) == "charCreation5") && ((inputText w) /= "") then
-                        do
-                            let InternalState player monster level = (internalState w)
-                            let Character health attack bleed bleed_recieved life_steal priority = player
-                            World "fight" (seconds w) (InternalState (Character health attack bleed bleed_recieved life_steal (read (inputText w))) monster level) ""
-                    else
-                        w
+      if ((screenType w) == "charCreation1") && ((inputText w) /= "") then
+          do
+              let InternalState player monster level = (internalState w)
+              let Character health attack bleed bleed_recieved life_steal priority = player
+              World "charCreation2" (seconds w) (InternalState (Character (read (inputText w)) attack bleed bleed_recieved life_steal priority) monster level) ""
+      else
+          if ((screenType w) == "charCreation2") && ((inputText w) /= "") then
+              do
+                  let InternalState player monster level = (internalState w)
+                  let Character health attack bleed bleed_recieved life_steal priority = player
+                  World "charCreation3" (seconds w) (InternalState (Character health (read (inputText w)) bleed bleed_recieved life_steal priority) monster level) ""
+          else
+              if ((screenType w) == "charCreation3") && ((inputText w) /= "") then
+                  do
+                      let InternalState player monster level = (internalState w)
+                      let Character health attack bleed bleed_recieved life_steal priority = player
+                      World "charCreation4" (seconds w) (InternalState (Character health attack (read (inputText w)) bleed_recieved life_steal priority) monster level) ""
+              else
+                  if ((screenType w) == "charCreation4") && ((inputText w) /= "") then
+                      do
+                          let InternalState player monster level = (internalState w)
+                          let Character health attack bleed bleed_recieved life_steal priority = player
+                          World "charCreation5" (seconds w) (InternalState (Character health attack bleed bleed_recieved (read (inputText w)) priority) monster level) ""
+                  else
+                      if ((screenType w) == "charCreation5") && ((inputText w) /= "") then
+                          do
+                              let InternalState player monster level = (internalState w)
+                              let Character health attack bleed bleed_recieved life_steal priority = player
+                              World "fight" (seconds w) (InternalState (Character health attack bleed bleed_recieved life_steal (read (inputText w))) monster level) ""
+                      else
+                          w
 
 handleMouseClick :: Float -> Float -> World -> World
 handleMouseClick x y w =
@@ -57,6 +60,36 @@ handleMouseClick x y w =
 
 handleStartEnter :: World -> World
 handleStartEnter w = World "charCreation1" (seconds w) (internalState w) (inputText w)
+
+handleResultEnter :: World -> World
+handleResultEnter w = 
+  do
+    let hero = getHero (internalState w)
+    let monster = getMonster (internalState w)
+    let heroHealth = getHealth hero
+    let monsterHealth = getHealth monster
+    let heroPriority = getPriority hero
+    let monsterPriority = getPriority monster
+     -- if hero and monster are both dead, calculate priority based win
+    if (heroHealth <= 0) && (monsterHealth <= 0) then
+      do
+        -- hero has priority, hero wins ties
+        if (heroPriority >= monsterPriority) then
+          do
+            World "levelUp" (seconds w) (internalState w) (inputText w)
+        -- monster has priority
+        else 
+          do
+            World "end" (seconds w) (internalState w) (inputText w)
+    -- hero dead, monster lives
+    else 
+      if (heroHealth <= 0) then
+        do
+          World "end" (seconds w) (internalState w) (inputText w)
+      -- monster dead, hero lives
+      else 
+        do
+          World "levelUp" (seconds w) (internalState w) (inputText w)
 
 handleCharKey :: Char -> World -> World
 handleCharKey c w =
@@ -74,7 +107,6 @@ handleDeleteKey w =
 
 deleteOneChar :: [a] -> [a]
 deleteOneChar s = if null s then [] else init s
-
 
 handleLevelUpClick :: Float -> Float -> World -> World
 handleLevelUpClick x y w =
@@ -103,86 +135,3 @@ handleLevelUpClick x y w =
               (World "fight" (seconds w) (InternalState (levelUpCharacter hero (Action 5)) newMonster newRound) "")
             else
               w
-
-smartLevelUpMonster :: Character -> Character -> Character
-smartLevelUpMonster hero monster =
-  do
-    let healthMonster = Character (getHealth monster + 5)
-                              (getAttack monster)
-                              (getBleed monster)
-                              (getBleedRecieved monster)
-                              (getLifeSteal monster)
-                              (getPriority monster)
-
-    let attackMonster = Character (getHealth monster)
-                              (getAttack monster + 5)
-                              (getBleed monster)
-                              (getBleedRecieved monster)
-                              (getLifeSteal monster)
-                              (getPriority monster)
-
-    let bleedMonster = Character (getHealth monster)
-                              (getAttack monster)
-                              (getBleed monster + 5)
-                              (getBleedRecieved monster)
-                              (getLifeSteal monster)
-                              (getPriority monster)
-
-    let lifeStealMonster = Character (getHealth monster)
-                              (getAttack monster)
-                              (getBleed monster)
-                              (getBleedRecieved monster)
-                              (getLifeSteal monster + 5)
-                              (getPriority monster)
-    
-    let priorityMonster = Character (getHealth monster)
-                              (getAttack monster)
-                              (getBleed monster)
-                              (getBleedRecieved monster)
-                              (getLifeSteal monster)
-                              (getPriority monster + 5)
-
-    let health = numberOfTurns healthMonster hero 0
-    let attack = numberOfTurns attackMonster hero 0
-    let bleed = numberOfTurns bleedMonster hero 0
-    let ls = numberOfTurns lifeStealMonster hero 0
-    let prio = numberOfTurns priorityMonster hero 0
-
-    if (health > attack) && (health > bleed) && (health > ls) && (health > prio) then healthMonster
-    else
-      if (attack > health) && (attack > bleed) && (attack > ls) && (attack > prio) then attackMonster
-      else
-        if (bleed > health) && (bleed > attack)  && (bleed > ls) && (bleed > prio) then bleedMonster
-        else
-          if (ls > health) && (ls > attack)  && (ls > bleed) && (ls > prio) then lifeStealMonster
-          else
-            if (prio > health) && (prio > attack)  && (prio > bleed) && (prio > ls) then priorityMonster
-            else healthMonster -- they are all equal so just get more health.
-
-numberOfTurns :: Character -> Character -> Int -> Int
-numberOfTurns monster hero turns = do
-    let newMonster = Character (getHealth monster - getAttack hero - getBleedRecieved monster + getLifeSteal monster - getLifeSteal hero)
-                            (getAttack monster)
-                            (getBleed monster)
-                            (getBleedRecieved monster + getBleed hero)
-                            (getLifeSteal monster)
-                            (getPriority monster)
-    let newHero = Character (getHealth hero - getAttack newMonster - getBleedRecieved hero + getLifeSteal hero - getLifeSteal monster)
-                            (getAttack hero)
-                            (getBleed hero)
-                            (getBleedRecieved hero + getBleed monster)
-                            (getLifeSteal hero)
-                            (getPriority hero)
-    if (getHealth newMonster <= 0) || (getHealth newHero <= 0) then -- check priority to solve tie
-      do
-        -- whoever has higher priority wins, hero wins ties
-        if ((getPriority newHero) >= (getPriority newMonster)) then
-          do
-            (turns + 1)
-        else
-          do
-            (turns + 100) -- monster wins this is the best option so weight it highest
-    else
-      do
-        numberOfTurns newMonster newHero (turns + 1)
-                

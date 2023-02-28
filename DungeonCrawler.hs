@@ -42,6 +42,7 @@ amountToLevelUpBy = 5
 --   life_steal value representing the player's life steal value (how much they heal per attack),
 --   priority (higher priority means they attack first), 
 data Character = Character Int Int Int Int Int Int
+  deriving Show
 data InternalState = InternalState Character Character Int -- self, monster, round
 data Action = Action Int                   -- a move for a player is just an Int that specifies what item they chose
          deriving (Ord,Eq)
@@ -331,6 +332,89 @@ chooseBest op health attack bleed ls prio =
             else
               do
                 putStrLn "Choose Any (preferably Health)" -- they are all equal so just get more health.
+
+
+smartLevelUpMonster :: Character -> Character -> Character
+smartLevelUpMonster hero monster =
+  do
+    let healthMonster = Character (getHealth monster + 5)
+                              (getAttack monster)
+                              (getBleed monster)
+                              (getBleedRecieved monster)
+                              (getLifeSteal monster)
+                              (getPriority monster)
+
+    let attackMonster = Character (getHealth monster)
+                              (getAttack monster + 5)
+                              (getBleed monster)
+                              (getBleedRecieved monster)
+                              (getLifeSteal monster)
+                              (getPriority monster)
+
+    let bleedMonster = Character (getHealth monster)
+                              (getAttack monster)
+                              (getBleed monster + 5)
+                              (getBleedRecieved monster)
+                              (getLifeSteal monster)
+                              (getPriority monster)
+
+    let lifeStealMonster = Character (getHealth monster)
+                              (getAttack monster)
+                              (getBleed monster)
+                              (getBleedRecieved monster)
+                              (getLifeSteal monster + 5)
+                              (getPriority monster)
+    
+    let priorityMonster = Character (getHealth monster)
+                              (getAttack monster)
+                              (getBleed monster)
+                              (getBleedRecieved monster)
+                              (getLifeSteal monster)
+                              (getPriority monster + 5)
+
+    let health = numberOfTurns healthMonster hero 0
+    let attack = numberOfTurns attackMonster hero 0
+    let bleed = numberOfTurns bleedMonster hero 0
+    let ls = numberOfTurns lifeStealMonster hero 0
+    let prio = numberOfTurns priorityMonster hero 0
+
+    if (health > attack) && (health > bleed) && (health > ls) && (health > prio) then healthMonster
+    else
+      if (attack > health) && (attack > bleed) && (attack > ls) && (attack > prio) then attackMonster
+      else
+        if (bleed > health) && (bleed > attack)  && (bleed > ls) && (bleed > prio) then bleedMonster
+        else
+          if (ls > health) && (ls > attack)  && (ls > bleed) && (ls > prio) then lifeStealMonster
+          else
+            if (prio > health) && (prio > attack)  && (prio > bleed) && (prio > ls) then priorityMonster
+            else healthMonster -- they are all equal so just get more health.
+
+numberOfTurns :: Character -> Character -> Int -> Int
+numberOfTurns monster hero turns = do
+    let newMonster = Character (getHealth monster - getAttack hero - getBleedRecieved monster + getLifeSteal monster - getLifeSteal hero)
+                            (getAttack monster)
+                            (getBleed monster)
+                            (getBleedRecieved monster + getBleed hero)
+                            (getLifeSteal monster)
+                            (getPriority monster)
+    let newHero = Character (getHealth hero - getAttack newMonster - getBleedRecieved hero + getLifeSteal hero - getLifeSteal monster)
+                            (getAttack hero)
+                            (getBleed hero)
+                            (getBleedRecieved hero + getBleed monster)
+                            (getLifeSteal hero)
+                            (getPriority hero)
+    if (getHealth newMonster <= 0) || (getHealth newHero <= 0) then -- check priority to solve tie
+      do
+        -- whoever has higher priority wins, hero wins ties
+        if ((getPriority newHero) >= (getPriority newMonster)) then
+          do
+            (turns + 1)
+        else
+          do
+            (turns + 100) -- monster wins this is the best option so weight it highest
+    else
+      do
+        numberOfTurns newMonster newHero (turns + 1)
 
 --------------------------------------------------------
 -- GETTERS
