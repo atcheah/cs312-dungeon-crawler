@@ -32,7 +32,7 @@ end seconds rounds =
         Pictures [ tombstone rounds, title, endText ]
     else
       do
-         Pictures[ tombstone rounds, title, endText, skullBase1, skullBase2, skullEye1, skullEye2, skullJawLine1, skullJawLine2, skullJawLine3 ]
+        Pictures[ tombstone rounds, title, endText, skullBase1, skullBase2, skullEye1, skullEye2, skullJawLine1, skullJawLine2, skullJawLine3 ]
 
 fight :: Float -> Character -> Character -> Picture
 fight seconds getHero getMonster = 
@@ -167,11 +167,13 @@ resultScene resultHero resultMonster =
     let heroHealth = (getHealth resultHero)
     let heroAttack = (getAttack resultHero)
     let heroBleed = (getBleed resultHero)
+    let heroBleedReceived = (getBleedRecieved resultHero)
     let heroLifeSteal = (getLifeSteal resultHero)
     let heroPriority = (getPriority resultHero)
     let monsterHealth = (getHealth resultMonster)
     let monsterAttack = (getAttack resultMonster)
     let monsterBleed = (getBleed resultMonster)
+    let monsterBleedReceived = (getBleedRecieved resultMonster)
     let monsterLifeSteal = (getLifeSteal resultMonster)
     let monsterPriority = (getPriority resultMonster)
     -- if hero and monster are both dead, calculate priority based win
@@ -186,11 +188,13 @@ resultScene resultHero resultMonster =
               heroHPBar (fromIntegral heroHealth), 
               heroStatAttack heroAttack, 
               heroStatBleed heroBleed, 
+              heroStatBleedReceived heroBleedReceived,
               heroStatLifeSteal heroLifeSteal, 
               heroStatPriority heroPriority,
               monsterHPBar (fromIntegral monsterHealth), 
               monsterStatAttack monsterAttack, 
               monsterStatBleed monsterBleed, 
+              monsterStatBleedReceived monsterBleedReceived,
               monsterStatLifeSteal monsterLifeSteal, 
               monsterStatPriority monsterPriority, 
               hero (-120) 0, 
@@ -206,11 +210,13 @@ resultScene resultHero resultMonster =
               heroHPBar (fromIntegral heroHealth), 
               heroStatAttack heroAttack, 
               heroStatBleed heroBleed, 
+              heroStatBleedReceived heroBleedReceived,
               heroStatLifeSteal heroLifeSteal, 
               heroStatPriority heroPriority,
               monsterHPBar (fromIntegral monsterHealth), 
               monsterStatAttack monsterAttack, 
               monsterStatBleed monsterBleed, 
+              monsterStatBleedReceived monsterBleedReceived,
               monsterStatLifeSteal monsterLifeSteal, 
               monsterStatPriority monsterPriority, 
               deadHero (-120) (-80), 
@@ -227,11 +233,13 @@ resultScene resultHero resultMonster =
               heroHPBar (fromIntegral heroHealth), 
               heroStatAttack heroAttack, 
               heroStatBleed heroBleed, 
+              heroStatBleedReceived heroBleedReceived,
               heroStatLifeSteal heroLifeSteal, 
               heroStatPriority heroPriority,
               monsterHPBar (fromIntegral monsterHealth), 
               monsterStatAttack monsterAttack, 
               monsterStatBleed monsterBleed, 
+              monsterStatBleedReceived monsterBleedReceived,
               monsterStatLifeSteal monsterLifeSteal, 
               monsterStatPriority monsterPriority, 
               deadHero (-120) (-80), 
@@ -247,11 +255,13 @@ resultScene resultHero resultMonster =
               heroHPBar (fromIntegral heroHealth), 
               heroStatAttack heroAttack, 
               heroStatBleed heroBleed, 
+              heroStatBleedReceived heroBleedReceived,
               heroStatLifeSteal heroLifeSteal, 
               heroStatPriority heroPriority,
               monsterHPBar (fromIntegral monsterHealth), 
               monsterStatAttack monsterAttack, 
               monsterStatBleed monsterBleed, 
+              monsterStatBleedReceived monsterBleedReceived,
               monsterStatLifeSteal monsterLifeSteal, 
               monsterStatPriority monsterPriority, 
               hero (-120) 0, 
@@ -623,39 +633,39 @@ levelUpPriorityButtonText currentPriority =
 
 characterCreationText :: Picture
 characterCreationText =
-  Translate (-150) (100) -- shift the text to the middle of the window
-  $ Scale 0.2 0.2 -- display it half the original size
-  $ Color yellow (Text "Build your character!") -- text to display
+  Translate (-150) (100) 
+  $ Scale 0.2 0.2 
+  $ Color yellow (Text "Build your character!") 
 
 characterHealthText :: Picture
 characterHealthText =
-  Translate (-200) (60) -- shift the text to the middle of the window
-  $ Scale 0.2 0.2 -- display it half the original size
-  $ Color yellow (Text "What is your character's health?") -- text to display
+  Translate (-200) (60) 
+  $ Scale 0.2 0.2 
+  $ Color yellow (Text "What is your character's health?") 
 
 characterAttackText :: Picture
 characterAttackText =
-    Translate (-200) (60) -- shift the text to the middle of the window
-    $ Scale 0.2 0.2 -- display it half the original size
-    $ Color yellow (Text "What is your character's attack?") -- text to display
+    Translate (-200) (60) 
+    $ Scale 0.2 0.2 
+    $ Color yellow (Text "What is your character's attack?") 
 
 characterBleedText :: Picture
 characterBleedText =
-  Translate (-200) (60) -- shift the text to the middle of the window
-  $ Scale 0.2 0.2 -- display it half the original size
-  $ Color yellow (Text "What is your character's bleed?") -- text to display
+  Translate (-200) (60) 
+  $ Scale 0.2 0.2 
+  $ Color yellow (Text "What is your character's bleed?") 
 
 characterLifeStealText :: Picture
 characterLifeStealText =
-    Translate (-200) (60) -- shift the text to the middle of the window
-    $ Scale 0.2 0.2 -- display it half the original size
-    $ Color yellow (Text "What is your character's life steal?") -- text to display
+    Translate (-200) (60) 
+    $ Scale 0.2 0.2 
+    $ Color yellow (Text "What is your character's life steal?") 
 
 characterPriorityext :: Picture
 characterPriorityext =
-  Translate (-200) (60) -- shift the text to the middle of the window
-  $ Scale 0.2 0.2 -- display it half the original size
-  $ Color yellow (Text "What is your character's priority?") -- text to display
+  Translate (-200) (60) 
+  $ Scale 0.2 0.2 
+  $ Color yellow (Text "What is your character's priority?") 
 
 data InputBox = InputBox String
 renderInputBox :: InputBox -> Picture
