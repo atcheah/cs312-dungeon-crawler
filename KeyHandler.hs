@@ -118,7 +118,9 @@ handleLevelUpClick x y w =
     let state = internalState w
     let hero = getHero state
     let healedHero = healCharacter hero
-    let newMonster = smartLevelUpMonster healedHero (getMonster state)
+    let monster = getMonster state
+    let healedMonster = healCharacter monster
+    let newMonster = smartLevelUpMonster healedHero healedMonster
     let newRound = getRound state + 1
     -- health button
     if (x > (-350) && x < (-150) && y > (-25) && y < 25) then
