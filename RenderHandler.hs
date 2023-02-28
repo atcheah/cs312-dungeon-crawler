@@ -6,11 +6,11 @@ import Data.Fixed
 
 renderHandler :: World -> World -> Picture
 renderHandler World{screenType="start"} world = start (seconds world)
-renderHandler World{screenType="charCreation1"} world = renderCharCreation1 (inputText world)
-renderHandler World{screenType="charCreation2"} world = renderCharCreation2 (inputText world)
-renderHandler World{screenType="charCreation3"} world = renderCharCreation3 (inputText world)
-renderHandler World{screenType="charCreation4"} world = renderCharCreation4 (inputText world)
-renderHandler World{screenType="charCreation5"} world = renderCharCreation5 (inputText world)
+renderHandler World{screenType="charCreation1"} world = renderCharCreation (inputText world) "health"
+renderHandler World{screenType="charCreation2"} world = renderCharCreation (inputText world) "attack"
+renderHandler World{screenType="charCreation3"} world = renderCharCreation (inputText world) "bleed"
+renderHandler World{screenType="charCreation4"} world = renderCharCreation (inputText world) "life steal"
+renderHandler World{screenType="charCreation5"} world = renderCharCreation (inputText world) "priority"
 renderHandler World{screenType="beginFight"} world = renderStartFightScene world
 renderHandler World{screenType="fight"} world = fight (seconds world) (getHero (internalState world)) (getMonster (internalState world))
 renderHandler World{screenType="result"} world = resultScene (getHero (internalState world)) (getMonster (internalState world))
@@ -27,12 +27,13 @@ renderHandler World{screenType="end"} world = end (seconds world) (getRound (int
 end :: Float -> Int -> Picture
 end seconds rounds =
   do
+    let staticEndScene = Pictures [ tombstone rounds, title, endText ]
     if (seconds `mod'` 3) < 1 then
       do
-        Pictures [ tombstone rounds, title, endText ]
+        staticEndScene
     else
       do
-         Pictures[ tombstone rounds, title, endText, skullBase1, skullBase2, skullEye1, skullEye2, skullJawLine1, skullJawLine2, skullJawLine3 ]
+         Pictures[ staticEndScene, skull ]
 
 fight :: Float -> Character -> Character -> Picture
 fight seconds getHero getMonster = 
@@ -78,41 +79,12 @@ start seconds =
 -- RENDER CHAR CREATION SCENES
 --------------------------------------------------------
 
-renderCharCreation1 :: String -> Picture
-renderCharCreation1 s = Pictures [
+renderCharCreation :: String -> String-> Picture
+renderCharCreation s prompt = Pictures [
                           title,
                           characterCreationText,
-                          characterHealthText,
+                          characterPromptText prompt,
                           (renderInputBox (InputBox s))]
-
-renderCharCreation2 :: String -> Picture
-renderCharCreation2 s = Pictures [
-                          title,
-                          characterCreationText,
-                          characterAttackText,
-                          (renderInputBox (InputBox s))]
-
-renderCharCreation3 :: String -> Picture
-renderCharCreation3 s = Pictures [
-                          title,
-                          characterCreationText,
-                          characterBleedText,
-                          (renderInputBox (InputBox s))]
-
-renderCharCreation4 :: String -> Picture
-renderCharCreation4 s = Pictures [
-                          title,
-                          characterCreationText,
-                          characterLifeStealText,
-                          (renderInputBox (InputBox s))]
-
-renderCharCreation5 :: String -> Picture
-renderCharCreation5 s = Pictures [
-                          title,
-                          characterCreationText,
-                          characterPriorityext,
-                          (renderInputBox (InputBox s))]
-
 --------------------------------------------------------
 -- TITLES
 --------------------------------------------------------
@@ -627,35 +599,11 @@ characterCreationText =
   $ Scale 0.2 0.2 -- display it half the original size
   $ Color yellow (Text "Build your character!") -- text to display
 
-characterHealthText :: Picture
-characterHealthText =
+characterPromptText :: String -> Picture
+characterPromptText prompt =
   Translate (-200) (60) -- shift the text to the middle of the window
   $ Scale 0.2 0.2 -- display it half the original size
-  $ Color yellow (Text "What is your character's health?") -- text to display
-
-characterAttackText :: Picture
-characterAttackText =
-    Translate (-200) (60) -- shift the text to the middle of the window
-    $ Scale 0.2 0.2 -- display it half the original size
-    $ Color yellow (Text "What is your character's attack?") -- text to display
-
-characterBleedText :: Picture
-characterBleedText =
-  Translate (-200) (60) -- shift the text to the middle of the window
-  $ Scale 0.2 0.2 -- display it half the original size
-  $ Color yellow (Text "What is your character's bleed?") -- text to display
-
-characterLifeStealText :: Picture
-characterLifeStealText =
-    Translate (-200) (60) -- shift the text to the middle of the window
-    $ Scale 0.2 0.2 -- display it half the original size
-    $ Color yellow (Text "What is your character's life steal?") -- text to display
-
-characterPriorityext :: Picture
-characterPriorityext =
-  Translate (-200) (60) -- shift the text to the middle of the window
-  $ Scale 0.2 0.2 -- display it half the original size
-  $ Color yellow (Text "What is your character's priority?") -- text to display
+  $ Color yellow (Text ("What is your character's "++ prompt ++"?")) -- text to display
 
 data InputBox = InputBox String
 renderInputBox :: InputBox -> Picture
@@ -713,6 +661,8 @@ skullJawLine2 = Translate (-250) (-50)
 
 skullJawLine3 = Translate (-280) (-50)
   $ Color black (rectangleSolid 10 40)
+
+skull = Pictures[skullBase1, skullBase2, skullEye1, skullEye2, skullJawLine1, skullJawLine2, skullJawLine3]
   
 --------------------------------------------------------
 -- CUSTOM COLORS
