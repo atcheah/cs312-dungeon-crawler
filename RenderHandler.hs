@@ -146,90 +146,48 @@ resultScene resultHero resultMonster =
     let monsterBleed = (getBleed resultMonster)
     let monsterLifeSteal = (getLifeSteal resultMonster)
     let monsterPriority = (getPriority resultMonster)
+    let commonScene = Pictures [
+                           title,
+                           heroHPBar (fromIntegral heroHealth),
+                           heroStatAttack heroAttack,
+                           heroStatBleed heroBleed,
+                           heroStatLifeSteal heroLifeSteal,
+                           heroStatPriority heroPriority,
+                           monsterHPBar (fromIntegral monsterHealth),
+                           monsterStatAttack monsterAttack,
+                           monsterStatBleed monsterBleed,
+                           monsterStatLifeSteal monsterLifeSteal,
+                           monsterStatPriority monsterPriority,
+                           Color blue heroBox,
+                           Color red monsterBox]
+    let heroWonScene = Pictures [
+                             commonScene,
+                             resultTextWin,
+                             hero (-120) 0,
+                             deadMonster (120) (-80)]
+
+    let monsterWonScene = Pictures [
+                            commonScene,
+                            resultTextLose,
+                            deadHero (-120) (-80),
+                            monster (120) 0]
     -- if hero and monster are both dead, calculate priority based win
     if (heroHealth <= 0) && (monsterHealth <= 0) then
       do
         -- hero has priority, hero wins ties
         if (heroPriority >= monsterPriority) then
           do
-            Pictures [
-              title, 
-              resultTextWin, 
-              heroHPBar (fromIntegral heroHealth), 
-              heroStatAttack heroAttack, 
-              heroStatBleed heroBleed, 
-              heroStatLifeSteal heroLifeSteal, 
-              heroStatPriority heroPriority,
-              monsterHPBar (fromIntegral monsterHealth), 
-              monsterStatAttack monsterAttack, 
-              monsterStatBleed monsterBleed, 
-              monsterStatLifeSteal monsterLifeSteal, 
-              monsterStatPriority monsterPriority, 
-              hero (-120) 0, 
-              deadMonster (120) (-80), 
-              Color blue heroBox, 
-              Color red monsterBox]
-        -- monster has priority
-        else 
+            heroWonScene
+        else -- monster has priority
           do
-            Pictures [
-              title, 
-              resultTextLose, 
-              heroHPBar (fromIntegral heroHealth), 
-              heroStatAttack heroAttack, 
-              heroStatBleed heroBleed, 
-              heroStatLifeSteal heroLifeSteal, 
-              heroStatPriority heroPriority,
-              monsterHPBar (fromIntegral monsterHealth), 
-              monsterStatAttack monsterAttack, 
-              monsterStatBleed monsterBleed, 
-              monsterStatLifeSteal monsterLifeSteal, 
-              monsterStatPriority monsterPriority, 
-              deadHero (-120) (-80), 
-              monster (120) 0, 
-              Color blue heroBox, 
-              Color red monsterBox]
-    -- hero dead, monster lives
-    else 
+            monsterWonScene
+    else     -- hero dead, monster lives
       if (heroHealth <= 0) then
         do
-          Pictures [
-              title, 
-              resultTextLose, 
-              heroHPBar (fromIntegral heroHealth), 
-              heroStatAttack heroAttack, 
-              heroStatBleed heroBleed, 
-              heroStatLifeSteal heroLifeSteal, 
-              heroStatPriority heroPriority,
-              monsterHPBar (fromIntegral monsterHealth), 
-              monsterStatAttack monsterAttack, 
-              monsterStatBleed monsterBleed, 
-              monsterStatLifeSteal monsterLifeSteal, 
-              monsterStatPriority monsterPriority, 
-              deadHero (-120) (-80), 
-              monster (120) 0, 
-              Color blue heroBox, 
-              Color red monsterBox]
-      -- monster dead, hero lives
-      else 
+          monsterWonScene
+      else       -- monster dead, hero lives
         do
-          Pictures [
-              title, 
-              resultTextWin, 
-              heroHPBar (fromIntegral heroHealth), 
-              heroStatAttack heroAttack, 
-              heroStatBleed heroBleed, 
-              heroStatLifeSteal heroLifeSteal, 
-              heroStatPriority heroPriority,
-              monsterHPBar (fromIntegral monsterHealth), 
-              monsterStatAttack monsterAttack, 
-              monsterStatBleed monsterBleed, 
-              monsterStatLifeSteal monsterLifeSteal, 
-              monsterStatPriority monsterPriority, 
-              hero (-120) 0, 
-              deadMonster (120) (-80), 
-              Color blue heroBox, 
-              Color red monsterBox]
+          heroWonScene
 
 --------------------------------------------------------
 -- ENTRY SCENE
