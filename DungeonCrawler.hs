@@ -127,35 +127,35 @@ smartLevelUpMonster hero monster =
     let lifeStealMonster = getLifeSteal monster
     let priorityMonster = getPriority monster
 
-    let healthMonster = Character (maxHealthMonster + amountToLevelUpBy)
+    let healthLeveledMonster = Character (maxHealthMonster + amountToLevelUpBy)
                               (maxHealthMonster + amountToLevelUpBy)
                               attackMonster
                               bleedMonster
                               bleedRecievedMonster
                               lifeStealMonster
                               priorityMonster
-    let attackMonster = Character maxHealthMonster
+    let attackLeveledMonster = Character maxHealthMonster
                               maxHealthMonster
                               (attackMonster + amountToLevelUpBy)
                               bleedMonster
                               bleedRecievedMonster
                               lifeStealMonster
                               priorityMonster
-    let bleedMonster = Character maxHealthMonster
+    let bleedLeveledMonster = Character maxHealthMonster
                               maxHealthMonster
                               attackMonster
                               (bleedMonster + amountToLevelUpBy)
                               bleedRecievedMonster
                               lifeStealMonster
                               priorityMonster
-    let lifeStealMonster = Character maxHealthMonster
+    let lifeStealLeveledMonster = Character maxHealthMonster
                               maxHealthMonster
                               attackMonster
                               bleedMonster
                               bleedRecievedMonster
                               (lifeStealMonster + amountToLevelUpBy)
                               priorityMonster  
-    let priorityMonster = Character maxHealthMonster
+    let priorityLeveledMonster = Character maxHealthMonster
                               maxHealthMonster
                               attackMonster
                               bleedMonster
@@ -163,23 +163,23 @@ smartLevelUpMonster hero monster =
                               lifeStealMonster
                               (priorityMonster + amountToLevelUpBy)
 
-    let health = numberOfTurns healthMonster hero 0
-    let attack = numberOfTurns attackMonster hero 0
-    let bleed = numberOfTurns bleedMonster hero 0
-    let ls = numberOfTurns lifeStealMonster hero 0
-    let prio = numberOfTurns priorityMonster hero 0
+    let health = numberOfTurns healthLeveledMonster hero 0
+    let attack = numberOfTurns attackLeveledMonster hero 0
+    let bleed = numberOfTurns bleedLeveledMonster hero 0
+    let ls = numberOfTurns lifeStealLeveledMonster hero 0
+    let prio = numberOfTurns priorityLeveledMonster hero 0
 
     -- maybe we could sort here?? 
-    if (health > attack) && (health > bleed) && (health > ls) && (health > prio) then healthMonster
+    if (health > attack) && (health > bleed) && (health > ls) && (health > prio) then healthLeveledMonster
     else
-      if (attack > health) && (attack > bleed) && (attack > ls) && (attack > prio) then attackMonster
+      if (attack > health) && (attack > bleed) && (attack > ls) && (attack > prio) then attackLeveledMonster
       else
-        if (bleed > health) && (bleed > attack)  && (bleed > ls) && (bleed > prio) then bleedMonster
+        if (bleed > health) && (bleed > attack)  && (bleed > ls) && (bleed > prio) then bleedLeveledMonster
         else
-          if (ls > health) && (ls > attack)  && (ls > bleed) && (ls > prio) then lifeStealMonster
+          if (ls > health) && (ls > attack)  && (ls > bleed) && (ls > prio) then lifeStealLeveledMonster
           else
-            if (prio > health) && (prio > attack)  && (prio > bleed) && (prio > ls) then priorityMonster
-            else healthMonster -- they are all equal so just get more health.
+            if (prio > health) && (prio > attack)  && (prio > bleed) && (prio > ls) then priorityLeveledMonster
+            else healthLeveledMonster -- they are all equal so just get more health.
 
 -- returns the number of turns it takes for the fight to end, and if the monster wins, adds 1000 to ensure it is considered the best option
 numberOfTurns :: Character -> Character -> Int -> Int
