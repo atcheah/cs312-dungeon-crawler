@@ -11,11 +11,13 @@ renderHandler World{screenType="charCreation2"} world = renderCharCreation2 (inp
 renderHandler World{screenType="charCreation3"} world = renderCharCreation3 (inputText world)
 renderHandler World{screenType="charCreation4"} world = renderCharCreation4 (inputText world)
 renderHandler World{screenType="charCreation5"} world = renderCharCreation5 (inputText world)
-renderHandler World{screenType="fight"} world = fight (seconds world) (getHealth (getHero (internalState world))) (getHealth (getMonster (internalState world)))
+renderHandler World{screenType="beginFight"} world = renderStartFightScene world
+renderHandler World{screenType="fight"} world = fight (seconds world) (getHero (internalState world)) (getMonster (internalState world))
+renderHandler World{screenType="result"} world = resultScene (getHero (internalState world)) (getMonster (internalState world))
 renderHandler World{screenType="levelUp"} world = 
   do
     let hero = getHero (internalState world)
-    levelUpScene (getHealth hero) (getAttack hero) (getBleed hero) (getLifeSteal hero) (getPriority hero)
+    levelUpScene (getMaxHealth hero) (getAttack hero) (getBleed hero) (getLifeSteal hero) (getPriority hero)
 renderHandler World{screenType="end"} world = end (seconds world) (getRound (internalState world))
 
 --------------------------------------------------------
@@ -32,15 +34,34 @@ end seconds rounds =
       do
          Pictures[ tombstone rounds, title, endText, skullBase1, skullBase2, skullEye1, skullEye2, skullJawLine1, skullJawLine2, skullJawLine3 ]
 
-fight :: Float -> Int -> Int -> Picture
-fight seconds heroHP monsterHP = 
+fight :: Float -> Character -> Character -> Picture
+fight seconds getHero getMonster = 
   do
+    let heroHealth = (getHealth getHero)
+    let heroAttack = (getAttack getHero)
+    let heroBleed = (getBleed getHero)
+    let heroLifeSteal = (getLifeSteal getHero)
+    let heroPriority = (getPriority getHero)
+    let heroBleedReceived = (getBleedRecieved getHero)
+
+    let monsterHealth = (getHealth getMonster)
+    let monsterAttack = (getAttack getMonster)
+    let monsterBleed = (getBleed getMonster)
+    let monsterBleedReceived = (getBleedRecieved getMonster)
+    let monsterLifeSteal = (getLifeSteal getMonster)
+    let monsterPriority = (getPriority getMonster)
+    let notAnimatedPictures = Pictures[fightTitle, title, heroHPBar (fromIntegral heroHealth), heroStatAttack heroAttack,
+                                heroStatBleed heroBleed, heroStatLifeSteal heroLifeSteal, heroStatPriority heroPriority,
+                                heroStatBleedReceived heroBleedReceived,monsterHPBar (fromIntegral monsterHealth),
+                                monsterStatAttack monsterAttack, monsterStatBleed monsterBleed,
+                                monsterStatBleedReceived monsterBleedReceived, monsterStatLifeSteal monsterLifeSteal,
+                                monsterStatPriority monsterPriority, Color blue heroBox, Color red monsterBox]
     if (seconds `mod'` 2) < 1 then
       do
-        Pictures [ title, heroHPBar (fromIntegral heroHP), monsterHPBar (fromIntegral monsterHP), hero (-120) 0, monster (120) 0]
+        Pictures [notAnimatedPictures, hero (-120) 0, monster (120) 0]
     else
       do
-         Pictures [ fightTitle, title, heroHPBar (fromIntegral heroHP), monsterHPBar (fromIntegral monsterHP), hero (-110) 0, monster (110) 0 ]
+         Pictures [notAnimatedPictures, hero (-110) 0, monster (110) 0]
 
 start:: Float -> Picture
 start seconds = 
@@ -56,6 +77,7 @@ start seconds =
 --------------------------------------------------------
 -- RENDER CHAR CREATION SCENES
 --------------------------------------------------------
+
 renderCharCreation1 :: String -> Picture
 renderCharCreation1 s = Pictures [
                           title,
@@ -90,6 +112,7 @@ renderCharCreation5 s = Pictures [
                           characterCreationText,
                           characterPriorityext,
                           (renderInputBox (InputBox s))]
+
 --------------------------------------------------------
 -- TITLES
 --------------------------------------------------------
@@ -138,6 +161,103 @@ levelUpScene hpStat attackStat bleedStat lifeStealState priorityStat = Pictures 
   levelUpLifeStealButtonText lifeStealState,
   levelUpPriorityButton,
   levelUpPriorityButtonText priorityStat]
+
+resultScene resultHero resultMonster =
+  do
+    let heroHealth = (getHealth resultHero)
+    let heroAttack = (getAttack resultHero)
+    let heroBleed = (getBleed resultHero)
+    let heroLifeSteal = (getLifeSteal resultHero)
+    let heroPriority = (getPriority resultHero)
+    let monsterHealth = (getHealth resultMonster)
+    let monsterAttack = (getAttack resultMonster)
+    let monsterBleed = (getBleed resultMonster)
+    let monsterLifeSteal = (getLifeSteal resultMonster)
+    let monsterPriority = (getPriority resultMonster)
+    -- if hero and monster are both dead, calculate priority based win
+    if (heroHealth <= 0) && (monsterHealth <= 0) then
+      do
+        -- hero has priority, hero wins ties
+        if (heroPriority >= monsterPriority) then
+          do
+            Pictures [
+              title, 
+              resultTextWin, 
+              heroHPBar (fromIntegral heroHealth), 
+              heroStatAttack heroAttack, 
+              heroStatBleed heroBleed, 
+              heroStatLifeSteal heroLifeSteal, 
+              heroStatPriority heroPriority,
+              monsterHPBar (fromIntegral monsterHealth), 
+              monsterStatAttack monsterAttack, 
+              monsterStatBleed monsterBleed, 
+              monsterStatLifeSteal monsterLifeSteal, 
+              monsterStatPriority monsterPriority, 
+              hero (-120) 0, 
+              deadMonster (120) (-80), 
+              Color blue heroBox, 
+              Color red monsterBox]
+        -- monster has priority
+        else 
+          do
+            Pictures [
+              title, 
+              resultTextLose, 
+              heroHPBar (fromIntegral heroHealth), 
+              heroStatAttack heroAttack, 
+              heroStatBleed heroBleed, 
+              heroStatLifeSteal heroLifeSteal, 
+              heroStatPriority heroPriority,
+              monsterHPBar (fromIntegral monsterHealth), 
+              monsterStatAttack monsterAttack, 
+              monsterStatBleed monsterBleed, 
+              monsterStatLifeSteal monsterLifeSteal, 
+              monsterStatPriority monsterPriority, 
+              deadHero (-120) (-80), 
+              monster (120) 0, 
+              Color blue heroBox, 
+              Color red monsterBox]
+    -- hero dead, monster lives
+    else 
+      if (heroHealth <= 0) then
+        do
+          Pictures [
+              title, 
+              resultTextLose, 
+              heroHPBar (fromIntegral heroHealth), 
+              heroStatAttack heroAttack, 
+              heroStatBleed heroBleed, 
+              heroStatLifeSteal heroLifeSteal, 
+              heroStatPriority heroPriority,
+              monsterHPBar (fromIntegral monsterHealth), 
+              monsterStatAttack monsterAttack, 
+              monsterStatBleed monsterBleed, 
+              monsterStatLifeSteal monsterLifeSteal, 
+              monsterStatPriority monsterPriority, 
+              deadHero (-120) (-80), 
+              monster (120) 0, 
+              Color blue heroBox, 
+              Color red monsterBox]
+      -- monster dead, hero lives
+      else 
+        do
+          Pictures [
+              title, 
+              resultTextWin, 
+              heroHPBar (fromIntegral heroHealth), 
+              heroStatAttack heroAttack, 
+              heroStatBleed heroBleed, 
+              heroStatLifeSteal heroLifeSteal, 
+              heroStatPriority heroPriority,
+              monsterHPBar (fromIntegral monsterHealth), 
+              monsterStatAttack monsterAttack, 
+              monsterStatBleed monsterBleed, 
+              monsterStatLifeSteal monsterLifeSteal, 
+              monsterStatPriority monsterPriority, 
+              hero (-120) 0, 
+              deadMonster (120) (-80), 
+              Color blue heroBox, 
+              Color red monsterBox]
 
 --------------------------------------------------------
 -- ENTRY SCENE
@@ -199,7 +319,78 @@ monsterHPBarCounter hp = Translate (140) (-180)
   $ Scale 0.2 0.2 
   $ Text hp 
 
--- Hero
+
+-- Hero Stats
+
+heroBox = Translate (-130) (-240)
+  $ rectangleWire 150 200
+
+heroStatAttack :: Int -> Picture
+heroStatAttack stat=
+  Translate (-200) (-220)
+  $ Scale 0.2 0.2
+  $ Color blue (Text ("Attack:" ++ show stat))
+
+heroStatBleed :: Int -> Picture
+heroStatBleed stat=
+  Translate (-200) (-245)
+  $ Scale 0.2 0.2
+  $ Color blue (Text ("Bleed:" ++ show stat))
+
+heroStatBleedReceived :: Int -> Picture
+heroStatBleedReceived stat=
+  Translate (-200) (-275)
+  $ Scale 0.13 0.13
+  $ Color blue (Text ("Bleed received:" ++ show stat))
+
+heroStatLifeSteal :: Int -> Picture
+heroStatLifeSteal stat=
+  Translate (-200) (-300)
+  $ Scale 0.2 0.2
+  $ Color blue (Text ("LifeSteal:" ++ show stat))
+
+heroStatPriority :: Int -> Picture
+heroStatPriority stat=
+  Translate (-200) (-325)
+  $ Scale 0.2 0.2
+  $ Color blue (Text ("Priority:" ++ show stat))
+
+-- Monster Stats
+
+monsterBox = Translate (170) (-240)
+  $ rectangleWire 150 200
+
+monsterStatAttack :: Int -> Picture
+monsterStatAttack stat=
+  Translate (100) (-220)
+  $ Scale 0.2 0.2
+  $ Color red (Text ("Attack:" ++ show stat))
+
+monsterStatBleed :: Int -> Picture
+monsterStatBleed stat=
+  Translate (100) (-245)
+  $ Scale 0.2 0.2
+  $ Color red (Text ("Bleed:" ++ show stat))
+
+monsterStatBleedReceived :: Int -> Picture
+monsterStatBleedReceived stat=
+  Translate (100) (-275)
+  $ Scale 0.13 0.13
+  $ Color red (Text ("Bleed received:" ++ show stat))
+
+monsterStatLifeSteal :: Int -> Picture
+monsterStatLifeSteal stat=
+  Translate (100) (-300)
+  $ Scale 0.2 0.2
+  $ Color red (Text ("LifeSteal:" ++ show stat))
+
+monsterStatPriority :: Int -> Picture
+monsterStatPriority stat=
+  Translate (100) (-325)
+  $ Scale 0.2 0.2
+  $ Color red (Text ("Priority:" ++ show stat))
+
+-- Hero Model
 
 hero x y = Pictures [heroBody x y, heroHead x y, heroRightLeg x y, heroLeftLeg x y, heroSword x y, heroRightArm x y, heroLeftArm x y]
 
@@ -227,7 +418,7 @@ heroSword x y = Translate (x+70) (y+10)
   $ Rotate 45
   $ Color greyColor (rectangleSolid 10 80)
 
--- Monster
+-- Monster Model
 
 monster x y = Pictures [monsterBody x y, monsterHead x y, monsterRightLeg x y, monsterLeftLeg x y, monsterSword x y, monsterRightArm x y, monsterLeftArm x y]
 
@@ -253,6 +444,106 @@ monsterLeftArm x y = Translate (x-40) y
 
 monsterSword x y = Translate (x-70) (y+10)
   $ Rotate (-45)
+  $ Color greyColor (rectangleSolid 10 80)
+
+
+
+startFightText :: Picture
+startFightText =
+  Translate (-180) (-120)
+  $ Scale 0.2 0.2
+  $ Color yellow (Text "Press Enter to Start the FIGHT!")
+
+roundText :: Int -> Picture
+roundText r=
+  Translate (-60) (110)
+  $ Scale 0.25 0.25
+  $ Color red (Text ("ROUND " ++ (show r)))
+
+renderStartFightScene :: World -> Picture
+renderStartFightScene world = Pictures [
+                                (fight (seconds world) (getHero (internalState world)) (getMonster (internalState world))),
+                                startFightText,
+                                (roundText (getRound (internalState world)))]
+
+--------------------------------------------------------
+-- RESULT SCENE
+--------------------------------------------------------
+
+resultTextWin :: Picture
+resultTextWin =
+  Translate (-150) (100) 
+  $ Scale 0.2 0.2 
+  $ Color yellow (Text "You Win!")
+
+resultTextLose :: Picture
+resultTextLose =
+  Translate (-150) (100) 
+  $ Scale 0.2 0.2 
+  $ Color yellow (Text "You Lose!")
+
+-- dead hero model
+
+deadHero x y = Pictures [deadHeroBody x y, deadHeroHead x y, deadHeroRightLeg x y, deadHeroLeftLeg x y, deadHeroSword x y, deadHeroRightArm x y, deadHeroLeftArm x y]
+
+deadHeroBody x y = Translate x y
+  $ Rotate 90
+  $ Color blue (rectangleSolid 50 50)
+
+deadHeroHead x y = Translate (x-50) y
+  $ Rotate 120
+  $ Color blue (rectangleSolid 20 20)
+
+deadHeroRightLeg x y = Translate (x+50) (y+15)
+  $ Rotate 90
+  $ Color blue (rectangleSolid 15 70)
+
+deadHeroLeftLeg x y = Translate (x+50) (y-15)
+  $ Rotate 90
+  $ Color blue (rectangleSolid 15 70)
+
+deadHeroRightArm x y = Translate (x-25) (y+40)
+  $ Rotate (-30)
+  $ Color blue (rectangleSolid 15 50)
+
+deadHeroLeftArm x y = Translate (x-25) (y-40)
+  $ Rotate 30
+  $ Color blue (rectangleSolid 15 50)
+
+deadHeroSword x y = Translate (x-70) (y+10)
+  $ Rotate (-45)
+  $ Color greyColor (rectangleSolid 10 80)
+
+-- dead monster model
+
+deadMonster x y = Pictures [deadMonsterBody x y, deadMonsterHead x y, deadMonsterRightLeg x y, deadMonsterLeftLeg x y , deadMonsterSword x y, deadMonsterRightArm x y, deadMonsterLeftArm x y]
+
+deadMonsterBody x y = Translate x y
+  $ Rotate 90
+  $ Color red (rectangleSolid 50 50)
+
+deadMonsterHead x y = Translate (x-50) y
+  $ Rotate 120
+  $ Color red (rectangleSolid 20 20)
+
+deadMonsterRightLeg x y = Translate (x+50) (y+15)
+  $ Rotate 90
+  $ Color red (rectangleSolid 15 70)
+
+deadMonsterLeftLeg x y = Translate (x+50) (y-15)
+  $ Rotate 90
+  $ Color red (rectangleSolid 15 70)
+
+deadMonsterRightArm x y = Translate (x-25) (y+40)
+  $ Rotate (-30)
+  $ Color red (rectangleSolid 15 50)
+
+deadMonsterLeftArm x y = Translate (x-25) (y-40)
+  $ Rotate (-30 )
+  $ Color red (rectangleSolid 15 50)
+
+deadMonsterSword x y = Translate (x-70) (y-40)
+  $ Rotate 135
   $ Color greyColor (rectangleSolid 10 80)
 
 --------------------------------------------------------
@@ -374,6 +665,7 @@ renderInputBox (InputBox s) = pictures [inputField, inputText]
     inputText = translate (-170) 0
         $ scale 0.25 0.25
         $ Color yellow (text s)
+
 --------------------------------------------------------
 -- END SCENE
 --------------------------------------------------------
