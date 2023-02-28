@@ -16,7 +16,7 @@ renderHandler World{screenType="result"} world = resultScene (getHero (internalS
 renderHandler World{screenType="levelUp"} world = 
   do
     let hero = getHero (internalState world)
-    levelUpScene (getHealth hero) (getAttack hero) (getBleed hero) (getLifeSteal hero) (getPriority hero)
+    levelUpScene (getMaxHealth hero) (getAttack hero) (getBleed hero) (getLifeSteal hero) (getPriority hero)
 renderHandler World{screenType="end"} world = end (seconds world) (getRound (internalState world))
 
 --------------------------------------------------------
