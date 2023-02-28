@@ -9,4 +9,7 @@ If they win, they progress to a level-up screen and choose a stat to increase. A
 If they lose, the game ends when the player loses a fight. 
 
 ## INSTALLATION GUIDE
-To install and run this repo,
+To install Gloss try running
+\#
+cabal install --lib gloss
+\#
