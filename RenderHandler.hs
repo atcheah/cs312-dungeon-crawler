@@ -11,6 +11,7 @@ renderHandler World{screenType="charCreation2"} world = renderCharCreation2 (inp
 renderHandler World{screenType="charCreation3"} world = renderCharCreation3 (inputText world)
 renderHandler World{screenType="charCreation4"} world = renderCharCreation4 (inputText world)
 renderHandler World{screenType="charCreation5"} world = renderCharCreation5 (inputText world)
+renderHandler World{screenType="beginFight"} world = renderStartFightScene world
 renderHandler World{screenType="fight"} world = fight (seconds world) (getHero (internalState world)) (getMonster (internalState world))
 renderHandler World{screenType="result"} world = resultScene (getHero (internalState world)) (getMonster (internalState world))
 renderHandler World{screenType="levelUp"} world = 
@@ -41,27 +42,26 @@ fight seconds getHero getMonster =
     let heroBleed = (getBleed getHero)
     let heroLifeSteal = (getLifeSteal getHero)
     let heroPriority = (getPriority getHero)
+    let heroBleedReceived = (getBleedRecieved getHero)
 
     let monsterHealth = (getHealth getMonster)
     let monsterAttack = (getAttack getMonster)
     let monsterBleed = (getBleed getMonster)
+    let monsterBleedReceived = (getBleedRecieved getMonster)
     let monsterLifeSteal = (getLifeSteal getMonster)
     let monsterPriority = (getPriority getMonster)
-
+    let notAnimatedPictures = Pictures[fightTitle, title, heroHPBar (fromIntegral heroHealth), heroStatAttack heroAttack,
+                                heroStatBleed heroBleed, heroStatLifeSteal heroLifeSteal, heroStatPriority heroPriority,
+                                heroStatBleedReceived heroBleedReceived,monsterHPBar (fromIntegral monsterHealth),
+                                monsterStatAttack monsterAttack, monsterStatBleed monsterBleed,
+                                monsterStatBleedReceived monsterBleedReceived, monsterStatLifeSteal monsterLifeSteal,
+                                monsterStatPriority monsterPriority, Color blue heroBox, Color red monsterBox]
     if (seconds `mod'` 2) < 1 then
       do
-        Pictures [title, heroHPBar (fromIntegral heroHealth), heroStatAttack heroAttack, 
-                heroStatBleed heroBleed, heroStatLifeSteal heroLifeSteal, heroStatPriority heroPriority,
-                monsterHPBar (fromIntegral monsterHealth), monsterStatAttack monsterAttack, monsterStatBleed monsterBleed, 
-                monsterStatLifeSteal monsterLifeSteal, monsterStatPriority monsterPriority, 
-                hero (-120) 0, monster (120) 0, Color blue heroBox, Color red monsterBox]
+        Pictures [notAnimatedPictures, hero (-120) 0, monster (120) 0]
     else
       do
-         Pictures [fightTitle, title, heroHPBar (fromIntegral heroHealth), heroStatAttack heroAttack, 
-                  heroStatBleed heroBleed, heroStatLifeSteal heroLifeSteal, heroStatPriority heroPriority, 
-                  monsterHPBar (fromIntegral monsterHealth), monsterStatAttack monsterAttack, monsterStatBleed monsterBleed, 
-                  monsterStatLifeSteal monsterLifeSteal, monsterStatPriority monsterPriority, 
-                  hero (-110) 0, monster (110) 0, Color blue heroBox, Color red monsterBox] 
+         Pictures [notAnimatedPictures, hero (-110) 0, monster (110) 0]
 
 start:: Float -> Picture
 start seconds = 
@@ -112,6 +112,7 @@ renderCharCreation5 s = Pictures [
                           characterCreationText,
                           characterPriorityext,
                           (renderInputBox (InputBox s))]
+
 --------------------------------------------------------
 -- TITLES
 --------------------------------------------------------
@@ -321,8 +322,8 @@ monsterHPBarCounter hp = Translate (140) (-180)
 
 -- Hero Stats
 
-heroBox = Translate (-130) (-220) 
-  $ rectangleWire 150 160
+heroBox = Translate (-130) (-240)
+  $ rectangleWire 150 200
 
 heroStatAttack :: Int -> Picture
 heroStatAttack stat=
@@ -336,22 +337,28 @@ heroStatBleed stat=
   $ Scale 0.2 0.2
   $ Color blue (Text ("Bleed:" ++ show stat))
 
+heroStatBleedReceived :: Int -> Picture
+heroStatBleedReceived stat=
+  Translate (-200) (-275)
+  $ Scale 0.13 0.13
+  $ Color blue (Text ("Bleed received:" ++ show stat))
+
 heroStatLifeSteal :: Int -> Picture
 heroStatLifeSteal stat=
-  Translate (-200) (-275)
+  Translate (-200) (-300)
   $ Scale 0.2 0.2
   $ Color blue (Text ("LifeSteal:" ++ show stat))
 
 heroStatPriority :: Int -> Picture
 heroStatPriority stat=
-  Translate (-200) (-300)
+  Translate (-200) (-325)
   $ Scale 0.2 0.2
   $ Color blue (Text ("Priority:" ++ show stat))
 
 -- Monster Stats
 
-monsterBox = Translate (170) (-220) 
-  $ rectangleWire 150 160
+monsterBox = Translate (170) (-240)
+  $ rectangleWire 150 200
 
 monsterStatAttack :: Int -> Picture
 monsterStatAttack stat=
@@ -365,15 +372,21 @@ monsterStatBleed stat=
   $ Scale 0.2 0.2
   $ Color red (Text ("Bleed:" ++ show stat))
 
+monsterStatBleedReceived :: Int -> Picture
+monsterStatBleedReceived stat=
+  Translate (100) (-275)
+  $ Scale 0.13 0.13
+  $ Color red (Text ("Bleed received:" ++ show stat))
+
 monsterStatLifeSteal :: Int -> Picture
 monsterStatLifeSteal stat=
-  Translate (100) (-275)
+  Translate (100) (-300)
   $ Scale 0.2 0.2
   $ Color red (Text ("LifeSteal:" ++ show stat))
 
 monsterStatPriority :: Int -> Picture
 monsterStatPriority stat=
-  Translate (100) (-300)
+  Translate (100) (-325)
   $ Scale 0.2 0.2
   $ Color red (Text ("Priority:" ++ show stat))
 
@@ -432,6 +445,26 @@ monsterLeftArm x y = Translate (x-40) y
 monsterSword x y = Translate (x-70) (y+10)
   $ Rotate (-45)
   $ Color greyColor (rectangleSolid 10 80)
+
+
+
+startFightText :: Picture
+startFightText =
+  Translate (-180) (-120)
+  $ Scale 0.2 0.2
+  $ Color yellow (Text "Press Enter to Start the FIGHT!")
+
+roundText :: Int -> Picture
+roundText r=
+  Translate (-60) (110)
+  $ Scale 0.25 0.25
+  $ Color red (Text ("ROUND " ++ (show r)))
+
+renderStartFightScene :: World -> Picture
+renderStartFightScene world = Pictures [
+                                (fight (seconds world) (getHero (internalState world)) (getMonster (internalState world))),
+                                startFightText,
+                                (roundText (getRound (internalState world)))]
 
 --------------------------------------------------------
 -- RESULT SCENE
