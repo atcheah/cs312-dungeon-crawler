@@ -35,6 +35,7 @@ end seconds rounds =
       do
          Pictures[ staticEndScene, skull ]
 
+
 fight :: Float -> Character -> Character -> Picture
 fight seconds getHero getMonster = 
   do
@@ -139,11 +140,13 @@ resultScene resultHero resultMonster =
     let heroHealth = (getHealth resultHero)
     let heroAttack = (getAttack resultHero)
     let heroBleed = (getBleed resultHero)
+    let heroBleedReceived = (getBleedRecieved resultHero)
     let heroLifeSteal = (getLifeSteal resultHero)
     let heroPriority = (getPriority resultHero)
     let monsterHealth = (getHealth resultMonster)
     let monsterAttack = (getAttack resultMonster)
     let monsterBleed = (getBleed resultMonster)
+    let monsterBleedReceived = (getBleedRecieved resultMonster)
     let monsterLifeSteal = (getLifeSteal resultMonster)
     let monsterPriority = (getPriority resultMonster)
     let commonScene = Pictures [
@@ -553,15 +556,16 @@ levelUpPriorityButtonText currentPriority =
 
 characterCreationText :: Picture
 characterCreationText =
-  Translate (-150) (100) -- shift the text to the middle of the window
-  $ Scale 0.2 0.2 -- display it half the original size
-  $ Color yellow (Text "Build your character!") -- text to display
+  Translate (-150) (100) 
+  $ Scale 0.2 0.2 
+  $ Color yellow (Text "Build your character!") 
 
 characterPromptText :: String -> Picture
 characterPromptText prompt =
   Translate (-200) (60) -- shift the text to the middle of the window
   $ Scale 0.2 0.2 -- display it half the original size
   $ Color yellow (Text ("What is your character's "++ prompt ++"?")) -- text to display
+
 
 data InputBox = InputBox String
 renderInputBox :: InputBox -> Picture

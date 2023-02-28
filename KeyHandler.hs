@@ -58,6 +58,20 @@ handleMouseClick x y w =
   else
     w
 
+handleCharKey :: Char -> World -> World
+handleCharKey c w =
+    if (isDigit c) && (elem (screenType w) ["charCreation1", "charCreation2", "charCreation3", "charCreation4", "charCreation5"]) then
+       World (screenType w) (seconds w) (internalState w) ((inputText w) ++ [c])
+    else
+        w
+
+handleDeleteKey :: World -> World
+handleDeleteKey w =
+    if (elem (screenType w) ["charCreation1", "charCreation2", "charCreation3", "charCreation4", "charCreation5"]) then
+        World (screenType w) (seconds w) (internalState w) (deleteOneChar (inputText w))
+    else
+        w
+
 --------------------------------------------------------
 -- SCREEN SPECIFIC KEY HANDLERS
 --------------------------------------------------------
@@ -95,23 +109,6 @@ handleResultEnter w =
         do
           World "levelUp" (seconds w) (internalState w) (inputText w)
 
-handleCharKey :: Char -> World -> World
-handleCharKey c w =
-    if (isDigit c) && (elem (screenType w) ["charCreation1", "charCreation2", "charCreation3", "charCreation4", "charCreation5"]) then
-       World (screenType w) (seconds w) (internalState w) ((inputText w) ++ [c])
-    else
-        w
-
-handleDeleteKey :: World -> World
-handleDeleteKey w =
-    if (elem (screenType w) ["charCreation1", "charCreation2", "charCreation3", "charCreation4", "charCreation5"]) then
-        World (screenType w) (seconds w) (internalState w) (deleteOneChar (inputText w))
-    else
-        w
-
-deleteOneChar :: [a] -> [a]
-deleteOneChar s = if null s then [] else init s
-
 handleLevelUpClick :: Float -> Float -> World -> World
 handleLevelUpClick x y w =
   do
@@ -143,3 +140,10 @@ handleLevelUpClick x y w =
               (World "beginFight" (seconds w) (InternalState (levelUpCharacter healedHero (Action 5)) newMonster newRound) "")
             else
               w
+
+--------------------------------------------------------
+-- UTILITY FUNCTIONS
+--------------------------------------------------------
+
+deleteOneChar :: [a] -> [a]
+deleteOneChar s = if null s then [] else init s
