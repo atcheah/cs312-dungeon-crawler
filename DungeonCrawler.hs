@@ -36,12 +36,14 @@ amountToLevelUpBy = 5
 --------------------------------------------------------
 -- Character is a 
 --   health value representing the player's health, 
+--   max_health value representing the player's max health,
 --   damage value representing the player's attack damage, 
 --   bleed value representing the player's bleed damage they inflict per attack, 
 --   bleed_recieved value representing the player's bleed damage they have recieved,
 --   life_steal value representing the player's life steal value (how much they heal per attack),
 --   priority (higher priority means they attack first), 
-data Character = Character Int Int Int Int Int Int
+data Character = Character Int Int Int Int Int Int Int
+  deriving Show
 data InternalState = InternalState Character Character Int -- self, monster, round
 data Action = Action Int                   -- a move for a player is just an Int that specifies what item they chose
          deriving (Ord,Eq)
@@ -62,27 +64,30 @@ dungeoncrawler move (State (InternalState self monster round) available) = do
 
 
 autoLevelUpCharacter :: Character -> Character 
-autoLevelUpCharacter (Character health attack bleed bleed_recieved life_steal priority) =
+autoLevelUpCharacter (Character health max_health attack bleed bleed_recieved life_steal priority) =
   do
-    let newHealth = health + 5
+    let newMaxHealth = max_health + 5
+    let newHealth = newMaxHealth
     let newAttack = attack + 1
     let newBleed = bleed + 1
     let newBleedRecieved = bleed_recieved + 1
     let newLifeSteal = life_steal + 1
     let newPriority = priority + 1
-    Character newHealth newAttack newBleed newBleedRecieved newLifeSteal newPriority
+    Character newHealth newMaxHealth newAttack newBleed newBleedRecieved newLifeSteal newPriority
 
 -- simulates a fight between a player and a monster, returns the player and monster after the fight
 -- used for smartLevelUpMonster in KeyHandler.hs to determine the amount of turns a monster can last in battle
 simulateFight :: Character -> Character -> Int -> (Character, Character, Int)
 simulateFight monster player turns = do
     let newMonster = Character (getHealth monster - getAttack player - getBleedRecieved monster + getLifeSteal monster - getLifeSteal player)
+                            (getMaxHealth monster)
                             (getAttack monster)
                             (getBleed monster)
                             (getBleedRecieved monster + getBleed player)
                             (getLifeSteal monster)
                             (getPriority monster)
     let newPlayer = Character (getHealth player - getAttack newMonster - getBleedRecieved player + getLifeSteal player - getLifeSteal monster)
+                            (getMaxHealth player)
                             (getAttack player)
                             (getBleed player)
                             (getBleedRecieved player + getBleed monster)
@@ -101,7 +106,6 @@ simulateFight monster player turns = do
           simulateFight newMonster newPlayer (turns + 1)
 
 playGame :: Game -> Result -> IO ()
-
 playGame game (ContinueGame state) =
    do
       let State internal avail = state
@@ -154,7 +158,7 @@ playFirstRound game (ContinueGame state) =
 
 -- lets the player choose a stat to upgrade
 chooseStatToUpgrade :: Character -> Character -> IO Action
-chooseStatToUpgrade (Character health attack bleed bleed_recieved life_steal priority) monster = 
+chooseStatToUpgrade (Character health max_health attack bleed bleed_recieved life_steal priority) monster = 
   do 
     putStrLn "What Stat would you like to level up?"
     putStrLn "1. Health"
@@ -162,7 +166,7 @@ chooseStatToUpgrade (Character health attack bleed bleed_recieved life_steal pri
     putStrLn "3. Bleed"
     putStrLn "4. Life Steal"
     putStrLn "5. Priority"
-    let player = Character health attack bleed bleed_recieved life_steal priority
+    let player = Character health max_health attack bleed bleed_recieved life_steal priority
     reccomend player monster
     choice <- getLineFixed
     if choice `elem` ["1", "health", "Health", "h", "H"] then
@@ -187,35 +191,39 @@ chooseStatToUpgrade (Character health attack bleed bleed_recieved life_steal pri
             else
               do
                 putStrLn "Invalid Choice"
-                chooseStatToUpgrade (Character health attack bleed bleed_recieved life_steal priority) monster
+                chooseStatToUpgrade (Character health max_health attack bleed bleed_recieved life_steal priority) monster
           
 
 -- levels up a player based on their choice
 levelUpCharacter :: Character -> Action -> Character
-levelUpCharacter (Character health attack bleed bleed_recieved life_steal priority) (Action chosenStat) = 
+levelUpCharacter (Character health max_health attack bleed bleed_recieved life_steal priority) (Action chosenStat) = 
   do 
     if (chosenStat == 1) then 
       do
-        (Character (health + amountToLevelUpBy) attack bleed bleed_recieved life_steal priority)
+        (Character (health + amountToLevelUpBy) (max_health + amountToLevelUpBy) attack bleed bleed_recieved life_steal priority)
     else 
       if (chosenStat == 2) then 
         do
-          (Character health (attack + amountToLevelUpBy) bleed bleed_recieved life_steal priority)
+          (Character health max_health (attack + amountToLevelUpBy) bleed bleed_recieved life_steal priority)
       else 
         if (chosenStat == 3) then 
           do
-            (Character health attack (bleed + amountToLevelUpBy) bleed_recieved life_steal priority)
+            (Character health max_health attack (bleed + amountToLevelUpBy) bleed_recieved life_steal priority)
         else
           if (chosenStat == 4) then
             do
-              (Character health attack bleed bleed_recieved (life_steal + amountToLevelUpBy) priority)
+              (Character health max_health attack bleed bleed_recieved (life_steal + amountToLevelUpBy) priority)
            else
              if (chosenStat == 5) then
                do
-                 (Character health attack bleed bleed_recieved life_steal (priority + amountToLevelUpBy))
+                 (Character health max_health attack bleed bleed_recieved life_steal (priority + amountToLevelUpBy))
              else
                do -- should't get to this other than first level
-                 (Character health attack bleed bleed_recieved life_steal priority)
+                 (Character health max_health attack bleed bleed_recieved life_steal priority)
+
+-- heals a character, and resets bleed recieved
+healCharacter :: Character -> Character
+healCharacter (Character health max_health attack bleed bleed_recieved life_steal priority) = Character max_health max_health attack bleed 0 life_steal priority
 
 -- handles starting the game
 mainGame :: IO ()
@@ -235,7 +243,7 @@ mainGame = do
     life_steal <- getLineFixed
     putStrLn "What is your character's priority?"
     priority <- getLineFixed
-    let dungencrawler_start = State (InternalState (Character (read health) (read attack) (read bleed) 0 (read life_steal) (read priority)) (Character 10 5 0 0 0 1) 1) [Action n | n <- [1..5]]
+    let dungencrawler_start = State (InternalState (Character (read health) (read health) (read attack) (read bleed) 0 (read life_steal) (read priority)) (Character 10 10 5 0 0 0 1) 1) [Action n | n <- [1..5]]
     playFirstRound dungeoncrawler (ContinueGame dungencrawler_start)
 
 ------ Recommender System ---------
@@ -243,6 +251,7 @@ reccomend :: Character -> Character -> IO()
 reccomend player monster =
   do
     let healthPlayer = Character (getHealth player + 5)
+                              (getMaxHealth player + 5)
                               (getAttack player)
                               (getBleed player)
                               (getBleedRecieved player)
@@ -250,6 +259,7 @@ reccomend player monster =
                               (getPriority player)
 
     let attackPlayer = Character (getHealth player)
+                              (getMaxHealth player)
                               (getAttack player + 5)
                               (getBleed player)
                               (getBleedRecieved player)
@@ -257,6 +267,7 @@ reccomend player monster =
                               (getPriority player)
 
     let bleedPlayer = Character (getHealth player)
+                              (getMaxHealth player)
                               (getAttack player)
                               (getBleed player + 5)
                               (getBleedRecieved player)
@@ -264,6 +275,7 @@ reccomend player monster =
                               (getPriority player)
 
     let lifeStealPlayer = Character (getHealth player)
+                                (getMaxHealth player)
                                 (getAttack player)
                                 (getBleed player)
                                 (getBleedRecieved player)
@@ -271,6 +283,7 @@ reccomend player monster =
                                 (getPriority player)
     
     let priorityPlayer = Character (getHealth player)
+                                (getMaxHealth player)
                                 (getAttack player)
                                 (getBleed player)
                                 (getBleedRecieved player)
@@ -332,33 +345,145 @@ chooseBest op health attack bleed ls prio =
               do
                 putStrLn "Choose Any (preferably Health)" -- they are all equal so just get more health.
 
+
+smartLevelUpMonster :: Character -> Character -> Character
+smartLevelUpMonster hero monster =
+  do
+    let healthMonster = Character (getMaxHealth monster + amountToLevelUpBy)
+                              (getMaxHealth monster + amountToLevelUpBy)
+                              (getAttack monster)
+                              (getBleed monster)
+                              (getBleedRecieved monster)
+                              (getLifeSteal monster)
+                              (getPriority monster)
+
+    let attackMonster = Character (getMaxHealth monster)
+                              (getMaxHealth monster)
+                              (getAttack monster + amountToLevelUpBy)
+                              (getBleed monster)
+                              (getBleedRecieved monster)
+                              (getLifeSteal monster)
+                              (getPriority monster)
+
+    let bleedMonster = Character (getMaxHealth monster)
+                              (getMaxHealth monster)
+                              (getAttack monster)
+                              (getBleed monster + amountToLevelUpBy)
+                              (getBleedRecieved monster)
+                              (getLifeSteal monster)
+                              (getPriority monster)
+
+    let lifeStealMonster = Character (getMaxHealth monster)
+                              (getMaxHealth monster)
+                              (getAttack monster)
+                              (getBleed monster)
+                              (getBleedRecieved monster)
+                              (getLifeSteal monster + amountToLevelUpBy)
+                              (getPriority monster)
+    
+    let priorityMonster = Character (getMaxHealth monster)
+                              (getMaxHealth monster)
+                              (getAttack monster)
+                              (getBleed monster)
+                              (getBleedRecieved monster)
+                              (getLifeSteal monster)
+                              (getPriority monster + amountToLevelUpBy)
+
+    let health = numberOfTurns healthMonster hero 0
+    let attack = numberOfTurns attackMonster hero 0
+    let bleed = numberOfTurns bleedMonster hero 0
+    let ls = numberOfTurns lifeStealMonster hero 0
+    let prio = numberOfTurns priorityMonster hero 0
+
+    if (health > attack) && (health > bleed) && (health > ls) && (health > prio) then healthMonster
+    else
+      if (attack > health) && (attack > bleed) && (attack > ls) && (attack > prio) then attackMonster
+      else
+        if (bleed > health) && (bleed > attack)  && (bleed > ls) && (bleed > prio) then bleedMonster
+        else
+          if (ls > health) && (ls > attack)  && (ls > bleed) && (ls > prio) then lifeStealMonster
+          else
+            if (prio > health) && (prio > attack)  && (prio > bleed) && (prio > ls) then priorityMonster
+            else healthMonster -- they are all equal so just get more health.
+
+numberOfTurns :: Character -> Character -> Int -> Int
+numberOfTurns monster hero turns = do
+    let newMonster = Character (getHealth monster - getAttack hero - getBleedRecieved monster + getLifeSteal monster - getLifeSteal hero)
+                            (getMaxHealth monster)
+                            (getAttack monster)
+                            (getBleed monster)
+                            (getBleedRecieved monster + getBleed hero)
+                            (getLifeSteal monster)
+                            (getPriority monster)
+    let newHero = Character (getHealth hero - getAttack newMonster - getBleedRecieved hero + getLifeSteal hero - getLifeSteal monster)
+                            (getMaxHealth hero)
+                            (getAttack hero)
+                            (getBleed hero)
+                            (getBleedRecieved hero + getBleed monster)
+                            (getLifeSteal hero)
+                            (getPriority hero)
+
+    let heroHealth = getHealth newHero
+    let monsterHealth = getHealth newMonster
+    let heroPriority = getPriority newHero
+    let monsterPriority = getPriority newMonster
+    -- is fight over?
+    if (monsterHealth <= 0) || (heroHealth <= 0) then -- check priority to solve tie
+      do
+        if (heroHealth <= 0) && (monsterHealth <= 0) then
+          do
+            -- hero has priority, hero wins ties
+            if (heroPriority >= monsterPriority) then
+              do
+                (turns + 1)
+            -- monster has priority
+            else 
+              do
+                (turns + 1000)
+        -- hero dead, monster lives
+        else 
+          if (heroHealth <= 0) then
+            do
+              (turns + 1000)
+          -- monster dead, hero lives
+          else 
+            do
+              (turns + 1)
+    -- continue fight
+    else
+      do
+        numberOfTurns newMonster newHero (turns + 1)
+
 --------------------------------------------------------
 -- GETTERS
 --------------------------------------------------------
 
 -- gets the health of a player
 getHealth :: Character -> Int
-getHealth (Character health _ _ _ _ _) = health
+getHealth (Character health _ _ _ _ _ _) = health
+
+getMaxHealth :: Character -> Int
+getMaxHealth (Character _ max_health _ _ _ _ _) = max_health
 
 -- gets the attack of a player
 getAttack :: Character -> Int
-getAttack (Character _ attack _ _ _ _) = attack
+getAttack (Character _ _ attack _ _ _ _) = attack
 
 -- gets the bleed of a player
 getBleed :: Character -> Int
-getBleed (Character _ _ bleed _ _ _) = bleed
+getBleed (Character _ _ _ bleed _ _ _) = bleed
 
 -- gets the bleed recieved of a player
 getBleedRecieved :: Character -> Int
-getBleedRecieved (Character _ _ _ bleed_recieved _ _) = bleed_recieved
+getBleedRecieved (Character _ _ _ _ bleed_recieved _ _) = bleed_recieved
 
 -- gets the life steal of a player
 getLifeSteal :: Character -> Int
-getLifeSteal (Character _ _ _ _ life_steal _) = life_steal
+getLifeSteal (Character _ _ _ _ _ life_steal _) = life_steal
 
 -- gets the priority of a player
 getPriority :: Character -> Int
-getPriority (Character _ _ _ _ _ priority) = priority
+getPriority (Character _ _ _ _ _ _ priority) = priority
 
 -- gets the hero from the InternalState
 getHero :: InternalState -> Character
