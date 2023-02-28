@@ -349,8 +349,8 @@ chooseBest op health attack bleed ls prio =
 smartLevelUpMonster :: Character -> Character -> Character
 smartLevelUpMonster hero monster =
   do
-    let healthMonster = Character (getMaxHealth monster + 5)
-                              (getMaxHealth monster + 5)
+    let healthMonster = Character (getMaxHealth monster + amountToLevelUpBy)
+                              (getMaxHealth monster + amountToLevelUpBy)
                               (getAttack monster)
                               (getBleed monster)
                               (getBleedRecieved monster)
@@ -359,7 +359,7 @@ smartLevelUpMonster hero monster =
 
     let attackMonster = Character (getMaxHealth monster)
                               (getMaxHealth monster)
-                              (getAttack monster + 5)
+                              (getAttack monster + amountToLevelUpBy)
                               (getBleed monster)
                               (getBleedRecieved monster)
                               (getLifeSteal monster)
@@ -368,7 +368,7 @@ smartLevelUpMonster hero monster =
     let bleedMonster = Character (getMaxHealth monster)
                               (getMaxHealth monster)
                               (getAttack monster)
-                              (getBleed monster + 5)
+                              (getBleed monster + amountToLevelUpBy)
                               (getBleedRecieved monster)
                               (getLifeSteal monster)
                               (getPriority monster)
@@ -378,7 +378,7 @@ smartLevelUpMonster hero monster =
                               (getAttack monster)
                               (getBleed monster)
                               (getBleedRecieved monster)
-                              (getLifeSteal monster + 5)
+                              (getLifeSteal monster + amountToLevelUpBy)
                               (getPriority monster)
     
     let priorityMonster = Character (getMaxHealth monster)
@@ -387,7 +387,7 @@ smartLevelUpMonster hero monster =
                               (getBleed monster)
                               (getBleedRecieved monster)
                               (getLifeSteal monster)
-                              (getPriority monster + 5)
+                              (getPriority monster + amountToLevelUpBy)
 
     let health = numberOfTurns healthMonster hero 0
     let attack = numberOfTurns attackMonster hero 0
@@ -422,16 +422,34 @@ numberOfTurns monster hero turns = do
                             (getBleedRecieved hero + getBleed monster)
                             (getLifeSteal hero)
                             (getPriority hero)
-    if (getHealth newMonster <= 0) || (getHealth newHero <= 0) then -- check priority to solve tie
+
+    let heroHealth = getHealth newHero
+    let monsterHealth = getHealth newMonster
+    let heroPriority = getPriority newHero
+    let monsterPriority = getPriority newMonster
+    -- is fight over?
+    if (monsterHealth <= 0) || (heroHealth <= 0) then -- check priority to solve tie
       do
-        -- TODO: this doesn't consider the case where hero has lower priority but won
-        -- whoever has higher priority wins, hero wins ties
-        if ((getPriority newHero) >= (getPriority newMonster)) then
+        if (heroHealth <= 0) && (monsterHealth <= 0) then
           do
-            (turns + 1)
-        else
-          do
-            (turns + 100) -- monster wins this is the best option so weight it highest
+            -- hero has priority, hero wins ties
+            if (heroPriority >= monsterPriority) then
+              do
+                (turns + 1)
+            -- monster has priority
+            else 
+              do
+                (turns + 1000)
+        -- hero dead, monster lives
+        else 
+          if (heroHealth <= 0) then
+            do
+              (turns + 1000)
+          -- monster dead, hero lives
+          else 
+            do
+              (turns + 1)
+    -- continue fight
     else
       do
         numberOfTurns newMonster newHero (turns + 1)
